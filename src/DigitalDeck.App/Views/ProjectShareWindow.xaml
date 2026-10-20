@@ -1,0 +1,23 @@
+<Window x:Class="DigitalDeck.App.Views.ProjectShareWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Compartir proyecto" Width="430" Height="230" WindowStyle="None" ResizeMode="NoResize"
+        ShowInTaskbar="False" WindowStartupLocation="CenterOwner" Background="{StaticResource BackgroundBrush}"
+        FontFamily="{StaticResource UiFont}">
+    <Border BorderBrush="{StaticResource EdgeBrush}" BorderThickness="1" CornerRadius="12" Background="{StaticResource ChromeBrush}" Padding="18">
+        <Grid>
+            <Grid.RowDefinitions><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="Auto"/><RowDefinition Height="*"/><RowDefinition Height="Auto"/></Grid.RowDefinitions>
+            <Grid MouseLeftButtonDown="TitleBar_MouseLeftButtonDown">
+                <TextBlock Text="COMPARTIR PROYECTO" Foreground="{StaticResource TextFaintBrush}" FontSize="11" FontWeight="SemiBold"/>
+                <Button HorizontalAlignment="Right" Style="{StaticResource ChromeButton}" Content="×" Padding="8,1" FontSize="18" Click="Close_Click"/>
+            </Grid>
+            <TextBlock x:Name="ProjectName" Grid.Row="1" Foreground="{StaticResource TextBrush}" FontSize="18" FontWeight="SemiBold" Margin="0,5,0,10" TextTrimming="CharacterEllipsis"/>
+            <TextBlock x:Name="StatusText" Grid.Row="2" Text="Preparando…" Foreground="{StaticResource AccentBrush}" FontSize="13" TextWrapping="Wrap"/>
+            <ProgressBar x:Name="Progress" Grid.Row="3" Height="7" IsIndeterminate="True" Margin="0,12,0,12"/>
+            <StackPanel Grid.Row="4">
+                <TextBox x:Name="LinkBox" Visibility="Collapsed" IsReadOnly="True" Padding="7" Margin="0,0,0,8"/>
+                <Button x:Name="CopyButton" Content="Copiar enlace" Visibility="Collapsed" HorizontalAlignment="Right" Style="{StaticResource ChromeButton}" Padding="10,5" Click="Copy_Click"/>
+            </StackPanel>
+        </Grid>
+    </Border>
+</Window>

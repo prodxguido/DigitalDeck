@@ -1,0 +1,219 @@
+<Window x:Class="DigitalDeck.App.Views.MixerWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:DigitalDeck.App"
+        Title="Mixer — DigitalDeck"
+        Width="1000" Height="620"
+        MinWidth="520" MinHeight="420"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BackgroundBrush}"
+        FontFamily="{StaticResource UiFont}">
+
+    <Window.Resources>
+        <local:RgbToBrushConverter x:Key="RgbToBrush" />
+        <local:LeftIndentConverter x:Key="LeftIndent" />
+
+        <!--
+            El fader.
+
+            El recorrido es lineal en el 0..1 que toma Live, que es exactamente como se mueve el
+            fader de Live: la unidad cae cerca del 0.85 porque ahí la pone su propio recorrido. La
+            marca a esa altura es la única que se dibuja, y es exacta; los decibeles de cualquier
+            otra posición los dice Live, arriba de cada fader.
+        -->
+        <Style x:Key="TouchFader" TargetType="Slider">
+            <Setter Property="Orientation" Value="Vertical" />
+            <Setter Property="Minimum" Value="0" />
+            <Setter Property="Maximum" Value="1" />
+            <Setter Property="SmallChange" Value="0.01" />
+            <Setter Property="LargeChange" Value="0.05" />
+            <Setter Property="IsMoveToPointEnabled" Value="True" />
+            <Setter Property="Width" Value="52" />
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Slider">
+                        <!-- Fondo transparente y no nulo: sin él, tocar al costado del riel no
+                             llega al control y el "mover al punto" no reacciona. -->
+                        <Grid Background="Transparent">
+                            <Border Width="12" CornerRadius="6"
+                                    Background="{StaticResource BackgroundBrush}"
+                                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" />
+
+                            <!-- La unidad, a 0.85 del recorrido: el 15% de arriba queda por
+                                 encima. Es el único punto de la escala que se puede marcar sin
+                                 inventar la curva de decibeles, y por eso es el único que hay. -->
+                            <!-- El margen es la mitad del alto del pulgar: el recorrido no es el
+                                 riel entero, porque el pulgar nunca sale de sus puntas. Sin esto la
+                                 marca queda arriba de donde el fader realmente para. -->
+                            <Grid IsHitTestVisible="False" Margin="0,15,0,15">
+                                <Grid.RowDefinitions>
+                                    <RowDefinition Height="15*" />
+                                    <RowDefinition Height="85*" />
+                                </Grid.RowDefinitions>
+                                <Border x:Name="UnityMark" Grid.Row="1" Height="1" Width="28" VerticalAlignment="Top"
+                                        Background="{StaticResource TextFaintBrush}" />
+                            </Grid>
+
+                            <!-- IsDirectionReversed en False: para un Track vertical el mínimo ya queda abajo,
+                                 y ponerlo en True deja el fader al revés. Hay un test que lo mira. -->
+                            <Track x:Name="PART_Track" Orientation="Vertical" IsDirectionReversed="False">
+                                <Track.DecreaseRepeatButton>
+                                    <RepeatButton Command="Slider.DecreaseLarge" Opacity="0" Focusable="False" />
+                                </Track.DecreaseRepeatButton>
+                                <Track.IncreaseRepeatButton>
+                                    <RepeatButton Command="Slider.IncreaseLarge" Opacity="0" Focusable="False" />
+                                </Track.IncreaseRepeatButton>
+                                <Track.Thumb>
+                                    <Thumb x:Name="PART_Thumb" Width="46" Height="30">
+                                        <Thumb.Template>
+                                            <ControlTemplate TargetType="Thumb">
+                                                <Border CornerRadius="5"
+                                                        Background="{StaticResource SurfaceRaisedBrush}"
+                                                        BorderBrush="{StaticResource BorderBrush}"
+                                                        BorderThickness="1">
+                                                    <Border Height="2" Width="22" CornerRadius="1"
+                                                            VerticalAlignment="Center"
+                                                            HorizontalAlignment="Center"
+                                                            Background="{Binding ColorRgb, Converter={StaticResource RgbToBrush},
+                                                                TargetNullValue={StaticResource AccentBrush}}" />
+                                                </Border>
+                                            </ControlTemplate>
+                                        </Thumb.Template>
+                                    </Thumb>
+                                </Track.Thumb>
+                            </Track>
+                        </Grid>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Una tira de canal: color de Live arriba, lectura, fader, nombre. -->
+        <DataTemplate x:Key="ChannelStrip">
+            <Border Width="70" Margin="{Binding IndentPixels, Converter={StaticResource LeftIndent}}" Padding="0,0,0,8"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                    CornerRadius="6">
+                <StackPanel>
+                    <Border Height="4" CornerRadius="3,3,0,0"
+                            Background="{Binding ColorRgb, Converter={StaticResource RgbToBrush}, TargetNullValue={StaticResource BorderBrush}}" />
+
+                    <TextBlock Text="{Binding Display}" Margin="0,7,0,6"
+                               HorizontalAlignment="Center" FontSize="11"
+                               Foreground="{StaticResource TextDimBrush}" />
+
+                    <Slider Style="{StaticResource TouchFader}" Height="300"
+                            HorizontalAlignment="Center"
+                            Value="{Binding Volume, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}" />
+
+                    <TextBlock Text="{Binding Name}" Margin="5,9,5,0"
+                               HorizontalAlignment="Center" TextAlignment="Center"
+                               TextTrimming="CharacterEllipsis" MaxHeight="30"
+                               TextWrapping="Wrap" FontSize="11"
+                               Foreground="{StaticResource TextBrush}"
+                               ToolTip="{Binding Name}" />
+                </StackPanel>
+            </Border>
+        </DataTemplate>
+
+        <Style x:Key="StripRow" TargetType="ItemsControl">
+            <Setter Property="ItemTemplate" Value="{StaticResource ChannelStrip}" />
+            <Setter Property="ItemsPanel">
+                <Setter.Value>
+                    <ItemsPanelTemplate>
+                        <StackPanel Orientation="Horizontal" />
+                    </ItemsPanelTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="PaneTitle" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextFaintBrush}" />
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="Margin" Value="2,0,0,7" />
+        </Style>
+
+        <BooleanToVisibilityConverter x:Key="BoolToVisibility" />
+        <local:NullToVisibilityConverter x:Key="NotNullToVisible" />
+
+    </Window.Resources>
+
+    <Grid x:Name="Root">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+        </Grid.RowDefinitions>
+
+        <!-- Barra de arriba -->
+        <Border Grid.Row="0" Background="{StaticResource SurfaceBrush}"
+                BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
+                Padding="16,11">
+            <DockPanel>
+                <StackPanel DockPanel.Dock="Right" Orientation="Horizontal">
+                    <Button x:Name="CompactButton" Style="{StaticResource SecondaryButton}"
+                            Content="{Binding CompactLabel}" Click="Compact_Click"
+                            Visibility="{Binding HasGroups, Converter={StaticResource BoolToVisibility}}"
+                            ToolTip="Deja sólo el fader del grupo, sin lo que tiene adentro." />
+                    <Button x:Name="ReturnsButton" Style="{StaticResource SecondaryButton}"
+                            Margin="8,0,0,0"
+                            Content="{Binding ReturnsLabel}" Click="Returns_Click"
+                            Visibility="{Binding HasReturns, Converter={StaticResource BoolToVisibility}}" />
+                </StackPanel>
+
+                <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                    <Ellipse x:Name="LiveDot" Width="9" Height="9" VerticalAlignment="Center" />
+                    <TextBlock x:Name="LiveStateText" Margin="9,0,0,0" VerticalAlignment="Center"
+                               Foreground="{StaticResource TextBrush}" FontSize="12.5" FontWeight="SemiBold" />
+                </StackPanel>
+            </DockPanel>
+        </Border>
+
+        <!-- Canales -->
+        <Grid Grid.Row="1">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+
+            <ScrollViewer Grid.Column="0" HorizontalScrollBarVisibility="Auto"
+                          VerticalScrollBarVisibility="Disabled" Padding="16,14,10,14"
+                          PanningMode="HorizontalOnly">
+                <ItemsControl x:Name="ChannelList" Style="{StaticResource StripRow}"
+                              ItemsSource="{Binding Channels}" />
+            </ScrollViewer>
+
+            <!-- Retornos. Se pliegan porque se dejan puestos y después sólo ocupan lugar. -->
+            <Border Grid.Column="1" Padding="14,14,14,14"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,0,0,0"
+                    Visibility="{Binding ShowReturnsPane, Converter={StaticResource BoolToVisibility}}">
+                <StackPanel>
+                    <TextBlock Text="Retornos" Style="{StaticResource PaneTitle}" />
+                    <ItemsControl x:Name="ReturnList" Style="{StaticResource StripRow}"
+                                  ItemsSource="{Binding Returns}" />
+                </StackPanel>
+            </Border>
+
+            <Border Grid.Column="2" Padding="14,14,16,14"
+                    Background="{StaticResource SurfaceBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,0,0,0"
+                    Visibility="{Binding Master, Converter={StaticResource NotNullToVisible}}">
+                <StackPanel>
+                    <TextBlock Text="Master" Style="{StaticResource PaneTitle}" />
+                    <ContentControl x:Name="MasterStrip"
+                                    Content="{Binding Master}"
+                                    ContentTemplate="{StaticResource ChannelStrip}" />
+                </StackPanel>
+            </Border>
+
+            <!-- Sin canales: la razón, no un panel vacío. -->
+            <TextBlock Grid.Column="0" Grid.ColumnSpan="3" Margin="40"
+                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                       TextAlignment="Center" TextWrapping="Wrap" FontSize="12.5"
+                       Foreground="{StaticResource TextFaintBrush}"
+                       Text="{Binding EmptyMessage}"
+                       Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisibility}}" />
+        </Grid>
+    </Grid>
+</Window>

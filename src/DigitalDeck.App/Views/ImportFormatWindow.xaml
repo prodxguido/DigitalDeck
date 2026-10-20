@@ -1,0 +1,49 @@
+<Window x:Class="DigitalDeck.App.Views.ImportFormatWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Importar paquetes"
+        Width="480" SizeToContent="Height"
+        ResizeMode="NoResize"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource BackgroundBrush}"
+        FontFamily="{StaticResource UiFont}">
+
+    <StackPanel Margin="20">
+        <TextBlock Text="¿Cómo querés que entren?" FontSize="15" FontWeight="SemiBold"
+                   Foreground="{StaticResource TextBrush}" />
+
+        <TextBlock x:Name="CountText" Margin="0,6,0,0" TextWrapping="Wrap" FontSize="11.5"
+                   Foreground="{StaticResource TextDimBrush}" />
+
+        <RadioButton x:Name="AsPageOption" GroupName="ImportTarget" IsChecked="True"
+                     Margin="0,16,0,0" Padding="7,0,0,0"
+                     VerticalContentAlignment="Center"
+                     Foreground="{StaticResource TextBrush}">
+            <StackPanel>
+                <TextBlock Text="Como páginas nuevas" FontSize="12.5" />
+                <TextBlock Text="Se suman pestañas al costado, con los botones ya desplegados."
+                           FontSize="11" Margin="0,2,0,0"
+                           Foreground="{StaticResource TextFaintBrush}" />
+            </StackPanel>
+        </RadioButton>
+
+        <RadioButton x:Name="AsGroupOption" GroupName="ImportTarget"
+                     Margin="0,8,0,0" Padding="7,0,0,0"
+                     VerticalContentAlignment="Center"
+                     Foreground="{StaticResource TextBrush}">
+            <StackPanel>
+                <TextBlock Text="Como un grupo en la página que estoy usando" FontSize="12.5" />
+                <TextBlock Text="Cada uno ocupa un botón; se abre y adentro están los demás."
+                           FontSize="11" Margin="0,2,0,0"
+                           Foreground="{StaticResource TextFaintBrush}" />
+            </StackPanel>
+        </RadioButton>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+            <Button Style="{StaticResource SecondaryButton}" Content="Cancelar"
+                    Margin="0,0,8,0" IsCancel="True" Click="Cancel_Click" />
+            <Button Style="{StaticResource PrimaryButton}" Content="Importar"
+                    IsDefault="True" Click="Accept_Click" />
+        </StackPanel>
+    </StackPanel>
+</Window>

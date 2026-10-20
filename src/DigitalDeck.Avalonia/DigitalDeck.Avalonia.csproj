@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    El shell de Avalonia: la misma app, dibujada por otro toolkit.
+
+    Existe para contestar la pregunta del paso 2 del port antes de gastar en el resto: si los
+    view models que ya tiene la app alcanzan para dibujar el deck en algo que no sea WPF. Por eso
+    no reimplementa nada: referencia DigitalDeck.ViewModels y ata la misma MainViewModel.
+
+    No referencia DigitalDeck.Integrations a proposito: ese proyecto es net8.0-windows (NAudio,
+    Vosk, Win32) y separarlo es trabajo del paso 3. Hasta entonces el puente con Live y el resto
+    de las integraciones entran como implementaciones que no hacen nada.
+  -->
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <AssemblyName>DigitalDeckAvalonia</AssemblyName>
+    <RootNamespace>DigitalDeck.Avalonia</RootNamespace>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Desktop" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Themes.Fluent" Version="11.2.3" />
+  </ItemGroup>
+
+  <!--
+    Los controles con x:Name que genera Avalonia son internos, y los tests headless los manejan
+    como los manejaria una persona: escriben en el cuadro del nombre y aprietan Guardar.
+  -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="DigitalDeck.Avalonia.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DigitalDeck.Core\DigitalDeck.Core.csproj" />
+    <ProjectReference Include="..\DigitalDeck.Data\DigitalDeck.Data.csproj" />
+    <ProjectReference Include="..\DigitalDeck.ViewModels\DigitalDeck.ViewModels.csproj" />
+    <ProjectReference Include="..\DigitalDeck.Integrations\DigitalDeck.Integrations.csproj" />
+  </ItemGroup>
+
+</Project>

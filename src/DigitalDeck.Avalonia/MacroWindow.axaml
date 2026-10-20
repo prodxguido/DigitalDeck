@@ -1,0 +1,75 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:DigitalDeck.Avalonia"
+        x:Class="DigitalDeck.Avalonia.MacroWindow"
+        Title="Varias acciones — DigitalDeck"
+        Width="520" Height="600"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource Background}">
+
+    <Grid RowDefinitions="Auto,*,Auto,Auto">
+
+        <TextBlock Grid.Row="0" Margin="18,18,18,0" TextWrapping="Wrap"
+                   Foreground="{StaticResource TextDim}" FontSize="12"
+                   Text="Los pasos corren en orden, y la espera de cada uno pasa antes de ejecutarlo — para darle tiempo a un programa a abrirse antes del paso que lo necesita." />
+
+        <ScrollViewer Grid.Row="1" Margin="18,12,18,0">
+            <StackPanel>
+                <ItemsControl x:Name="Steps">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Border Margin="0,0,0,6" Padding="12,9" CornerRadius="7"
+                                    Background="{StaticResource Surface}"
+                                    BorderBrush="{StaticResource Border}" BorderThickness="1">
+                                <Grid ColumnDefinitions="*,Auto">
+                                    <StackPanel Grid.Column="0" Spacing="4">
+                                        <TextBlock Text="{Binding Summary}" Foreground="{StaticResource Text}"
+                                                   FontSize="12.5" TextWrapping="Wrap" />
+                                        <StackPanel Orientation="Horizontal" Spacing="6">
+                                            <TextBlock Text="Esperar antes:" VerticalAlignment="Center"
+                                                       Foreground="{StaticResource TextDim}" FontSize="11" />
+                                            <TextBox Text="{Binding DelayText, Mode=TwoWay}" Width="70" />
+                                            <TextBlock Text="ms" VerticalAlignment="Center"
+                                                       Foreground="{StaticResource TextDim}" FontSize="11" />
+                                        </StackPanel>
+                                    </StackPanel>
+
+                                    <StackPanel Grid.Column="1" Orientation="Horizontal" Spacing="4"
+                                                VerticalAlignment="Top">
+                                        <Button Content="↑" Click="Up_Click" Tag="{Binding}" />
+                                        <Button Content="↓" Click="Down_Click" Tag="{Binding}" />
+                                        <Button Content="✕" Click="Remove_Click" Tag="{Binding}" />
+                                    </StackPanel>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock x:Name="Empty" Foreground="{StaticResource TextDim}" FontSize="11.5"
+                           TextWrapping="Wrap"
+                           Text="Todavía no hay pasos. Agregá el primero abajo." />
+            </StackPanel>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="2" Margin="18,12,18,0" Spacing="8">
+            <Button Content="Agregar un paso…" Click="Add_Click" HorizontalAlignment="Left" />
+
+            <CheckBox x:Name="ContinueBox" IsChecked="True" Foreground="{StaticResource Text}"
+                      Content="Seguir aunque un paso falle" />
+
+            <TextBlock Foreground="{StaticResource TextDim}" FontSize="11" TextWrapping="Wrap"
+                       Text="Que un programa no esté instalado no es motivo para quedarte sin el resto. Al terminar avisa cuáles fallaron." />
+
+            <TextBlock x:Name="Problem" Foreground="#E8615F" FontSize="11.5"
+                       TextWrapping="Wrap" IsVisible="False" />
+        </StackPanel>
+
+        <Border Grid.Row="3" Background="{StaticResource Surface}" Padding="18,12" Margin="0,14,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="Cancelar" Click="Cancel_Click" />
+                <Button Content="Guardar" Click="Save_Click" IsDefault="True" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

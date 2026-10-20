@@ -1,0 +1,29 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Los tests del shell de Avalonia, en modo headless.
+
+    Avalonia dibuja contra una plataforma de mentira, sin escritorio y sin ventana: las mismas
+    plantillas se parsean, el mismo layout corre, y se puede mirar el arbol visual. Es la unica
+    forma de verificar esta UI en una maquina sin sesion interactiva, y la que hace que un error
+    de XAML se vea en un test en vez de la primera vez que alguien abre la app.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <AvaloniaUseCompiledBindingsByDefault>false</AvaloniaUseCompiledBindingsByDefault>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia.Headless.XUnit" Version="11.2.3" />
+    <PackageReference Include="Avalonia.Skia" Version="11.2.3" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.11.1" />
+    <PackageReference Include="xunit" Version="2.9.2" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="2.8.2" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DigitalDeck.Avalonia\DigitalDeck.Avalonia.csproj" />
+  </ItemGroup>
+
+</Project>

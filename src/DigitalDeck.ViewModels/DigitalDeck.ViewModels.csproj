@@ -1,0 +1,40 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Todo lo que el deck sabe hacer, sin saber quién lo dibuja.
+
+    `net8.0` a secas y no `net8.0-windows`: es la mitad del port a Mac que no hay que escribir dos
+    veces. El compilador es el que sostiene la regla — acá no hay forma de referenciar WPF, así que
+    un tipo de dibujo que se cuele no compila en vez de descubrirse el día que se arranca Avalonia.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="CommunityToolkit.Mvvm" Version="8.3.2" />
+
+    <!--
+      Solo las abstracciones: MacroHandler pide un IActionDispatcher recien cuando se aprieta
+      el boton, para poder correr los pasos por el mismo camino que un boton suelto sin
+      quedar en un ciclo con el dispatcher que lo contiene.
+    -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="8.0.2" />
+  </ItemGroup>
+
+  <!--
+    Los tests manejan el view model como lo maneja la ventana, y para eso llegan a alguna
+    cosa interna: SettleAsync, que espera a que termine el trabajo que dispara una
+    seleccion. Es la misma concesion que ya hacia DigitalDeck.App.
+  -->
+  <ItemGroup>
+    <InternalsVisibleTo Include="DigitalDeck.App.Tests" />
+    <InternalsVisibleTo Include="DigitalDeck.Avalonia.Tests" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DigitalDeck.Core\DigitalDeck.Core.csproj" />
+    <ProjectReference Include="..\DigitalDeck.Data\DigitalDeck.Data.csproj" />
+  </ItemGroup>
+
+</Project>

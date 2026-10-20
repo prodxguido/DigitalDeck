@@ -1,0 +1,195 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:DigitalDeck.ViewModels;assembly=DigitalDeck.ViewModels"
+        xmlns:local="clr-namespace:DigitalDeck.Avalonia"
+        x:Class="DigitalDeck.Avalonia.MainWindow"
+        Title="DigitalDeck — Avalonia"
+        Width="1160" Height="720"
+        Background="{StaticResource Background}">
+
+    <Window.KeyBindings>
+        <KeyBinding Gesture="Ctrl+F" Command="{Binding ToggleSearchCommand}" />
+        <KeyBinding Gesture="Cmd+F" Command="{Binding ToggleSearchCommand}" />
+        <KeyBinding Gesture="Escape" Command="{Binding CloseSearchCommand}" />
+    </Window.KeyBindings>
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto">
+
+        <!-- Las páginas del perfil abierto, y el modo edición. -->
+        <DockPanel Grid.Row="0" Margin="12,10,12,0">
+            <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" Spacing="6">
+                <Button Content="Volver" Command="{Binding GoBackCommand}"
+                        IsVisible="{Binding CanGoBack}" />
+                <ToggleButton x:Name="EditToggle" Content="Editar"
+                              IsChecked="{Binding IsEditMode, Mode=TwoWay}" />
+
+                <!-- Todo lo que no se hace tocando la grilla. Mismo menú que el ☰ de la app de WPF. -->
+                <Button x:Name="MenuButton" Content="⋯">
+                    <Button.Flyout>
+                        <MenuFlyout>
+                            <MenuItem Header="Nueva página" Command="{Binding NewPageCommand}" />
+                            <MenuItem Header="Configurar página" Command="{Binding EditPageCommand}" />
+                            <MenuItem Header="Eliminar página" Command="{Binding DeletePageCommand}" />
+                            <Separator />
+                            <MenuItem Header="Nuevo perfil" Command="{Binding NewProfileCommand}" />
+                            <MenuItem Header="Renombrar perfil" Command="{Binding RenameProfileCommand}" />
+                            <MenuItem Header="Duplicar perfil" Command="{Binding DuplicateProfileCommand}" />
+                            <MenuItem Header="Eliminar perfil" Command="{Binding DeleteProfileCommand}" />
+                            <Separator />
+                            <MenuItem Header="Mixer de Ableton" Command="{Binding ShowMixerCommand}" />
+                            <MenuItem Header="Instalar el Remote Script…" Command="{Binding ShowRemoteScriptCommand}" />
+                            <Separator />
+                            <MenuItem Header="Instalar plantillas…" Command="{Binding InstallTemplatesCommand}" />
+                            <MenuItem Header="Exportar perfil" Command="{Binding ExportProfileCommand}" />
+                        </MenuFlyout>
+                    </Button.Flyout>
+                </Button>
+            </StackPanel>
+
+            <ItemsControl ItemsSource="{Binding Pages}">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Margin="0,0,6,0" Padding="12,6" CornerRadius="7"
+                            Background="{StaticResource Surface}"
+                            BorderBrush="{StaticResource Border}" BorderThickness="1"
+                            Foreground="{StaticResource Text}" FontSize="12.5"
+                            Content="{Binding Name}"
+                            Command="{Binding $parent[ItemsControl].DataContext.SelectPageCommand}"
+                            CommandParameter="{Binding}" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </DockPanel>
+
+        <!-- Dónde estamos parados dentro de la página. -->
+        <ItemsControl Grid.Row="1" ItemsSource="{Binding Breadcrumbs}" Margin="12,10,12,0">
+            <ItemsControl.ItemsPanel>
+                <ItemsPanelTemplate>
+                    <StackPanel Orientation="Horizontal" />
+                </ItemsPanelTemplate>
+            </ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate>
+                <DataTemplate>
+                    <Button Margin="0,0,6,0" Padding="6,2" Background="Transparent" BorderThickness="0"
+                            Foreground="{StaticResource TextDim}" FontSize="12"
+                            Content="{Binding Label}"
+                            Command="{Binding $parent[ItemsControl].DataContext.NavigateToCommand}"
+                            CommandParameter="{Binding}" />
+                </DataTemplate>
+            </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <!--
+            La grilla de verdad: cada botón en la celda en la que está guardado, con el tamaño que
+            tiene. Dónde cae cada celda lo calcula DeckGridMetrics, en Core, que es el mismo que usa
+            el panel de WPF — la misma página pone el mismo botón en el mismo lugar en los dos.
+        -->
+        <Grid Grid.Row="2">
+            <ItemsControl ItemsSource="{Binding Items}">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <local:DeckGridPanel x:Name="Grid" Background="Transparent"
+                                             Columns="{Binding Columns}" Rows="{Binding Rows}"
+                                             PointerPressed="Grid_PointerPressed" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="vm:DeckItemViewModel">
+                        <!--
+                            Estirado en los dos ejes: el panel le da a cada botón el rectángulo de
+                            su celda, pero sin esto Avalonia lo dibuja del tamaño que pidió y lo
+                            deja flotando adentro. Se ve como un deck de botones chiquitos.
+                        -->
+                        <Button Padding="0" Background="Transparent" BorderThickness="0"
+                                HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
+                                HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                                Click="Tile_Click" Tag="{Binding}">
+                            <Button.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="Editar" Click="Edit_Click" Tag="{Binding}" />
+                                    <MenuItem Header="Duplicar" Click="Duplicate_Click" Tag="{Binding}" />
+                                    <MenuItem Header="Eliminar" Click="Delete_Click" Tag="{Binding}" />
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                            <Border CornerRadius="10" BorderThickness="1"
+                                    BorderBrush="{StaticResource Border}"
+                                    Background="{Binding ColorHex, Converter={StaticResource TileWash}}">
+                                <Grid RowDefinitions="*,Auto" Margin="10,10,10,8">
+
+                                    <Image Grid.Row="0" Stretch="Uniform" Margin="4"
+                                           Source="{Binding IconPath, Converter={StaticResource IconImage}}" />
+
+                                    <Viewbox Grid.Row="0" Stretch="Uniform" Margin="9"
+                                             MaxWidth="52" MaxHeight="52"
+                                             IsVisible="{Binding IconPath, Converter={x:Static ObjectConverters.IsNull}}">
+                                        <!-- DrawableIconName y no DrawnIconName: acá no hay fuente
+                                             de íconos de Windows detrás, así que un deck viejo se
+                                             dibuja con el equivalente del set propio en vez de con
+                                             un carácter que este toolkit no sabe pintar. -->
+                                        <Path Data="{Binding DrawableIconName, Converter={StaticResource IconGeometry}}"
+                                              Stroke="{Binding ColorHex, Converter={StaticResource TileAccent}}"
+                                              StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Viewbox>
+
+                                    <TextBlock Grid.Row="1" Text="{Binding Label}"
+                                               Foreground="{StaticResource Text}" FontSize="12"
+                                               TextAlignment="Center" TextWrapping="Wrap"
+                                               MaxHeight="32" TextTrimming="CharacterEllipsis" />
+                                </Grid>
+                            </Border>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </Grid>
+
+        <!--
+            La búsqueda, encima de la grilla. Mira todas las páginas del perfil y todos los grupos:
+            un botón olvidado cuesta un atajo en vez de una recorrida.
+        -->
+        <Border Grid.Row="2" IsVisible="{Binding IsSearchOpen}"
+                Background="#E60B1013" Padding="24">
+            <Border Background="{StaticResource Surface}" CornerRadius="10" Padding="14"
+                    BorderBrush="{StaticResource Border}" BorderThickness="1"
+                    VerticalAlignment="Top" MaxWidth="620">
+                <Grid RowDefinitions="Auto,*">
+                    <TextBox Grid.Row="0" x:Name="SearchBox" Watermark="Buscar un botón…"
+                             Text="{Binding SearchQuery, Mode=TwoWay}" />
+
+                    <ScrollViewer Grid.Row="1" MaxHeight="360" Margin="0,10,0,0">
+                        <ItemsControl ItemsSource="{Binding SearchResults}">
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate DataType="vm:DeckSearchResultViewModel">
+                                    <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                            Margin="0,0,0,4" Padding="10,8"
+                                            Background="Transparent" BorderThickness="0"
+                                            Command="{Binding $parent[ItemsControl].DataContext.OpenSearchResultCommand}"
+                                            CommandParameter="{Binding}">
+                                        <StackPanel Spacing="2">
+                                            <TextBlock Text="{Binding Label}" Foreground="{StaticResource Text}"
+                                                       FontSize="12.5" />
+                                            <TextBlock Text="{Binding Location}" Foreground="{StaticResource TextDim}"
+                                                       FontSize="11" />
+                                        </StackPanel>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+        </Border>
+
+        <Border Grid.Row="3" Background="{StaticResource Surface}" Padding="12,7">
+            <TextBlock Foreground="{StaticResource TextDim}" FontSize="11.5">
+                <Run Text="{Binding AbletonDetail}" />
+            </TextBlock>
+        </Border>
+    </Grid>
+</Window>

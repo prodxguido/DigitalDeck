@@ -1,0 +1,58 @@
+<Window x:Class="DigitalDeck.App.Views.VoiceOverlayWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="DigitalDeck"
+        WindowStyle="None"
+        AllowsTransparency="True"
+        Background="Transparent"
+        ShowInTaskbar="False"
+        ShowActivated="False"
+        Topmost="True"
+        Focusable="False"
+        IsHitTestVisible="False"
+        SizeToContent="WidthAndHeight"
+        ResizeMode="NoResize">
+
+    <!--
+        IsHitTestVisible is off as well as the window being click-through by style: this thing sits
+        over Ableton while someone is working, and a stray click landing on it instead of on the
+        track underneath would be worse than the overlay not existing.
+    -->
+    <Border Background="{DynamicResource SurfaceRaisedBrush}"
+            BorderBrush="{DynamicResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="10"
+            Padding="18,14"
+            MinWidth="260"
+            Margin="16">
+        <Border.Effect>
+            <DropShadowEffect BlurRadius="18" ShadowDepth="3" Opacity="0.45" Color="Black" />
+        </Border.Effect>
+
+        <StackPanel Orientation="Horizontal">
+            <Ellipse x:Name="Pip"
+                     Width="10" Height="10"
+                     VerticalAlignment="Center"
+                     Margin="0,0,12,0"
+                     Fill="{DynamicResource AccentBrush}" />
+
+            <StackPanel>
+                <TextBlock x:Name="Detail"
+                           FontFamily="{DynamicResource UiFont}"
+                           FontSize="15"
+                           Foreground="{DynamicResource TextBrush}"
+                           Text="Escuchando…" />
+
+                <!-- The transcript, shown only on a miss so the user can see what it thought it heard. -->
+                <TextBlock x:Name="Heard"
+                           FontFamily="{DynamicResource UiFont}"
+                           FontSize="12"
+                           Margin="0,4,0,0"
+                           Foreground="{DynamicResource TextFaintBrush}"
+                           TextTrimming="CharacterEllipsis"
+                           MaxWidth="320"
+                           Visibility="Collapsed" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

@@ -1,0 +1,163 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:DigitalDeck.Avalonia"
+        x:Class="DigitalDeck.Avalonia.ItemEditorWindow"
+        Title="Botón — DigitalDeck"
+        Width="460" Height="600"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource Background}">
+
+    <Window.Resources>
+        <local:HexToBrushConverter x:Key="Swatch" />
+    </Window.Resources>
+
+    <Grid RowDefinitions="*,Auto">
+
+        <ScrollViewer Grid.Row="0" Padding="18">
+            <StackPanel Spacing="6">
+
+                <TextBlock Text="NOMBRE" Foreground="{StaticResource TextDim}" FontSize="10.5" />
+                <TextBox x:Name="LabelBox" />
+
+                <TextBlock Text="COLOR" Foreground="{StaticResource TextDim}" FontSize="10.5" Margin="0,14,0,0" />
+                <ItemsControl x:Name="Swatches">
+                    <ItemsControl.ItemsPanel>
+                        <ItemsPanelTemplate>
+                            <WrapPanel />
+                        </ItemsPanelTemplate>
+                    </ItemsControl.ItemsPanel>
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button Width="34" Height="34" Margin="0,0,7,7" CornerRadius="8"
+                                    BorderThickness="0"
+                                    Background="{Binding Converter={StaticResource Swatch}}"
+                                    Click="Swatch_Click" Tag="{Binding}" />
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock Text="ÍCONO" Foreground="{StaticResource TextDim}" FontSize="10.5" Margin="0,8,0,0" />
+                <ScrollViewer Height="150" VerticalScrollBarVisibility="Auto">
+                    <ItemsControl x:Name="Icons">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Width="40" Height="40" Margin="0,0,6,6" Padding="7"
+                                        Background="{StaticResource Surface}"
+                                        BorderBrush="{StaticResource Border}" BorderThickness="1"
+                                        CornerRadius="8"
+                                        Click="Icon_Click" Tag="{Binding}"
+                                        ToolTip.Tip="{Binding}">
+                                    <Viewbox Stretch="Uniform">
+                                        <Path Data="{Binding Converter={StaticResource IconGeometry}}"
+                                              Stroke="{StaticResource Text}" StrokeThickness="2"
+                                              StrokeLineCap="Round" StrokeJoin="Round" />
+                                    </Viewbox>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+
+                <TextBlock Text="QUÉ HACE" Foreground="{StaticResource TextDim}" FontSize="10.5" Margin="0,14,0,0" />
+                <StackPanel x:Name="Kinds" Spacing="4">
+                    <RadioButton x:Name="NoneChoice" GroupName="kind" Content="Ninguna"
+                                 Foreground="{StaticResource Text}" IsChecked="True" />
+                    <RadioButton x:Name="PathChoice" GroupName="kind" Content="Abrir carpeta o archivo"
+                                 Foreground="{StaticResource Text}" />
+                    <RadioButton x:Name="UrlChoice" GroupName="kind" Content="Abrir web"
+                                 Foreground="{StaticResource Text}" />
+                    <RadioButton x:Name="MixerChoice" GroupName="kind" Content="Mixer de Ableton"
+                                 Foreground="{StaticResource Text}" />
+                    <RadioButton x:Name="AbletonChoice" GroupName="kind" Content="Comando de Ableton Live"
+                                 Foreground="{StaticResource Text}" />
+                    <RadioButton x:Name="LoadChoice" GroupName="kind" Content="Cargar dispositivo de Live"
+                                 Foreground="{StaticResource Text}" />
+                    <RadioButton x:Name="MacroChoice" GroupName="kind" Content="Varias acciones"
+                                 Foreground="{StaticResource Text}" />
+                </StackPanel>
+
+                <TextBox x:Name="TargetBox" Margin="0,8,0,0"
+                         IsVisible="{Binding #PathChoice.IsChecked}"
+                         Watermark="C:\ruta\a\la\carpeta   o   ~/Music/Ableton" />
+
+                <TextBox x:Name="UrlBox" Margin="0,8,0,0"
+                         IsVisible="{Binding #UrlChoice.IsChecked}"
+                         Watermark="https://..." />
+
+                <!-- Los pasos de un botón que hace varias cosas, editados en su propia ventana. -->
+                <StackPanel x:Name="MacroPanel" Spacing="6" Margin="0,8,0,0" IsVisible="False">
+                    <TextBlock x:Name="MacroText" Foreground="{StaticResource Text}" FontSize="12.5"
+                               TextWrapping="Wrap" Text="Todavía no tiene pasos." />
+                    <Button x:Name="MacroButton" Content="Editar los pasos…" Click="Macro_Click" />
+                </StackPanel>
+
+                <!-- El dispositivo elegido del browser de Live, con el botón para cambiarlo. -->
+                <StackPanel x:Name="LoadPanel" Spacing="6" Margin="0,8,0,0" IsVisible="False">
+                    <TextBlock x:Name="DeviceText" Foreground="{StaticResource Text}" FontSize="12.5"
+                               TextWrapping="Wrap" Text="Todavía no elegiste ninguno." />
+                    <Button x:Name="PickButton" Content="Elegir del browser de Live…" Click="Pick_Click" />
+                    <TextBlock Foreground="{StaticResource TextDim}" FontSize="11" TextWrapping="Wrap"
+                               Text="Elegirlo de la lista y no escribirlo a mano es lo que hace que cargue: es un nombre que Live dijo." />
+                </StackPanel>
+
+                <!-- Lo que pide el comando elegido, y nada más: la mayoría no pide nada. -->
+                <StackPanel x:Name="AbletonPanel" Spacing="6" Margin="0,8,0,0" IsVisible="False">
+                    <ComboBox x:Name="CommandBox" HorizontalAlignment="Stretch"
+                              DisplayMemberBinding="{Binding Label}"
+                              SelectionChanged="Command_Changed" />
+
+                    <TextBlock x:Name="CommandNote" Foreground="{StaticResource TextDim}" FontSize="11"
+                               TextWrapping="Wrap" IsVisible="False" />
+
+                    <StackPanel x:Name="TrackRow" Spacing="3" IsVisible="False">
+                        <TextBlock Text="Track" Foreground="{StaticResource TextDim}" FontSize="10.5" />
+                        <TextBox x:Name="TrackBox" Watermark="-1 = la seleccionada, -2 = el master" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="SceneRow" Spacing="3" IsVisible="False">
+                        <TextBlock Text="Escena" Foreground="{StaticResource TextDim}" FontSize="10.5" />
+                        <TextBox x:Name="SceneBox" Watermark="-1 = la seleccionada" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="SendRow" Spacing="3" IsVisible="False">
+                        <TextBlock Text="Send" Foreground="{StaticResource TextDim}" FontSize="10.5" />
+                        <TextBox x:Name="SendBox" Watermark="0 = send A" />
+                    </StackPanel>
+
+                    <StackPanel x:Name="ValueRow" Spacing="3" IsVisible="False">
+                        <TextBlock x:Name="ValueLabel" Foreground="{StaticResource TextDim}" FontSize="10.5" />
+                        <TextBox x:Name="ValueBox" />
+                        <TextBlock x:Name="ValueHint" Foreground="{StaticResource TextDim}" FontSize="10.5"
+                                   TextWrapping="Wrap" IsVisible="False" />
+                    </StackPanel>
+
+                    <CheckBox x:Name="StateBox" Content="Encender" IsVisible="False"
+                              Foreground="{StaticResource Text}" />
+                </StackPanel>
+
+                <TextBlock x:Name="Problem" Foreground="#E8615F" FontSize="11.5"
+                           TextWrapping="Wrap" Margin="0,10,0,0" IsVisible="False" />
+
+                <!--
+                    Lo que este editor todavía no hace. Dicho acá y no escondido: un botón de Live
+                    abierto en Mac se guarda igual que estaba, no se pierde.
+                -->
+                <TextBlock x:Name="Unported" Foreground="{StaticResource TextDim}" FontSize="11"
+                           TextWrapping="Wrap" Margin="0,12,0,0" IsVisible="False"
+                           Text="Este botón hace algo que este editor todavía no sabe cambiar. Podés cambiarle el nombre, el color y el ícono; lo que hace se guarda como está." />
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Row="1" Background="{StaticResource Surface}" Padding="18,12">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="Cancelar" Click="Cancel_Click" />
+                <Button Content="Guardar" Click="Save_Click" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

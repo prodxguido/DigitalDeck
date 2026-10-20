@@ -1,0 +1,53 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="clr-namespace:DigitalDeck.ViewModels;assembly=DigitalDeck.ViewModels"
+        x:Class="DigitalDeck.Avalonia.TemplatesWindow"
+        Title="Instalar plantillas — DigitalDeck"
+        Width="520" Height="560"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource Background}">
+
+    <Grid RowDefinitions="Auto,*,Auto,Auto">
+
+        <TextBlock Grid.Row="0" Margin="18,18,18,10" TextWrapping="Wrap"
+                   Foreground="{StaticResource TextDim}" FontSize="12"
+                   Text="Grupos ya armados que vienen adentro de la app. Elegí los que quieras: entran al perfil abierto y no se mueve nada de lo que ya estaba." />
+
+        <ScrollViewer Grid.Row="1" Padding="18,0">
+            <ItemsControl x:Name="List">
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate DataType="vm:TemplateChoice">
+                        <Border Margin="0,0,0,6" Padding="12,9" CornerRadius="7"
+                                Background="{StaticResource Surface}"
+                                BorderBrush="{StaticResource Border}" BorderThickness="1">
+                            <CheckBox IsChecked="{Binding IsSelected, Mode=TwoWay}">
+                                <StackPanel Spacing="2">
+                                    <TextBlock Text="{Binding Name}" Foreground="{StaticResource Text}"
+                                               FontSize="12.5" FontWeight="SemiBold" />
+                                    <TextBlock Text="{Binding Summary}" Foreground="{StaticResource TextDim}"
+                                               FontSize="11" />
+                                </StackPanel>
+                            </CheckBox>
+                        </Border>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+        </ScrollViewer>
+
+        <StackPanel Grid.Row="2" Margin="18,12,18,0" Spacing="4">
+            <RadioButton x:Name="AsPages" GroupName="destino" IsChecked="True"
+                         Foreground="{StaticResource Text}"
+                         Content="Cada una como una página nueva" />
+            <RadioButton x:Name="AsGroups" GroupName="destino"
+                         Foreground="{StaticResource Text}"
+                         Content="Como un grupo en la página que estoy usando" />
+        </StackPanel>
+
+        <Border Grid.Row="3" Background="{StaticResource Surface}" Padding="18,12" Margin="0,14,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="Cancelar" Click="Cancel_Click" />
+                <Button Content="Instalar" Click="Install_Click" IsDefault="True" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

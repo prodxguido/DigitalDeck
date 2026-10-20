@@ -1,0 +1,64 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="DigitalDeck.Avalonia.BrowserPickerWindow"
+        Title="Elegir del browser de Live — DigitalDeck"
+        Width="560" Height="620"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource Background}">
+
+    <Grid RowDefinitions="Auto,Auto,Auto,*,Auto">
+
+        <ComboBox Grid.Row="0" x:Name="CategoryBox" Margin="18,18,18,0"
+                  HorizontalAlignment="Stretch"
+                  SelectionChanged="Category_Changed" />
+
+        <TextBox Grid.Row="1" x:Name="SearchBox" Margin="18,10,18,0"
+                 Watermark="Buscar en esta sección…"
+                 KeyDown="Search_KeyDown" />
+
+        <!-- Dónde estamos parados adentro de la sección. -->
+        <StackPanel Grid.Row="2" Orientation="Horizontal" Margin="18,10,18,0" Spacing="6">
+            <Button x:Name="UpButton" Content="Subir" Click="Up_Click" IsVisible="False" />
+            <TextBlock x:Name="PathText" VerticalAlignment="Center"
+                       Foreground="{StaticResource TextDim}" FontSize="11.5"
+                       TextTrimming="CharacterEllipsis" />
+        </StackPanel>
+
+        <ScrollViewer Grid.Row="3" Margin="18,10,18,0">
+            <StackPanel>
+                <TextBlock x:Name="Problem" Foreground="#E8615F" FontSize="11.5"
+                           TextWrapping="Wrap" IsVisible="False" Margin="0,0,0,8" />
+
+                <ItemsControl x:Name="Entries">
+                    <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                            <Button HorizontalAlignment="Stretch" HorizontalContentAlignment="Left"
+                                    Margin="0,0,0,4" Padding="10,8"
+                                    Background="{StaticResource Surface}"
+                                    BorderBrush="{StaticResource Border}" BorderThickness="1"
+                                    CornerRadius="7"
+                                    Click="Entry_Click" Tag="{Binding}">
+                                <StackPanel Orientation="Horizontal" Spacing="8">
+                                    <TextBlock Text="{Binding Marker}" Foreground="{StaticResource TextDim}"
+                                               FontSize="12" VerticalAlignment="Center" />
+                                    <TextBlock Text="{Binding Entry.Name}" Foreground="{StaticResource Text}"
+                                               FontSize="12.5" VerticalAlignment="Center" />
+                                </StackPanel>
+                            </Button>
+                        </DataTemplate>
+                    </ItemsControl.ItemTemplate>
+                </ItemsControl>
+
+                <TextBlock x:Name="Empty" Foreground="{StaticResource TextDim}" FontSize="11.5"
+                           TextWrapping="Wrap" IsVisible="False"
+                           Text="No hay nada acá. Si Live está cerrado o el puente no levantó, el browser no contesta." />
+            </StackPanel>
+        </ScrollViewer>
+
+        <Border Grid.Row="4" Background="{StaticResource Surface}" Padding="18,12" Margin="0,14,0,0">
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+                <Button Content="Cancelar" Click="Cancel_Click" />
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

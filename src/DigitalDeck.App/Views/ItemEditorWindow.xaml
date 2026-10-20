@@ -1,0 +1,738 @@
+<Window x:Class="DigitalDeck.App.Views.ItemEditorWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:DigitalDeck.App"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        SizeToContent="Height"
+        Width="470"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="Transparent"
+        AllowsTransparency="True"
+        FontFamily="{StaticResource UiFont}">
+
+    <Window.Resources>
+        <local:IconGeometryConverter x:Key="IconGeometry" />
+
+        <Style x:Key="Swatch" TargetType="Button">
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="Margin" Value="0,0,7,0" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border Background="{TemplateBinding Background}" CornerRadius="12" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="GlyphChoice" TargetType="Button">
+            <Setter Property="Width" Value="32" />
+            <Setter Property="Height" Value="32" />
+            <Setter Property="Margin" Value="0,0,5,5" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontFamily" Value="{StaticResource GlyphFont}" />
+            <Setter Property="FontSize" Value="14" />
+            <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root" Background="{StaticResource BackgroundBrush}"
+                                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                CornerRadius="6">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="Chip" TargetType="RadioButton">
+            <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
+            <Setter Property="FontSize" Value="12" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Root" Background="{StaticResource BackgroundBrush}"
+                                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                CornerRadius="6" Padding="13,6" Margin="0,0,6,0">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="{StaticResource AccentBrush}" />
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                <Setter Property="Foreground" Value="#0B1013" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Same idea as Chip, but it has to wrap: a group can hold a dozen commands. -->
+        <Style x:Key="CommandChip" TargetType="RadioButton" BasedOn="{StaticResource Chip}">
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="RadioButton">
+                        <Border x:Name="Root" Background="{StaticResource BackgroundBrush}"
+                                BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                                CornerRadius="6" Padding="10,5" Margin="0,0,5,5">
+                            <ContentPresenter VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                            </Trigger>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="{StaticResource AccentBrush}" />
+                                <Setter TargetName="Root" Property="BorderBrush" Value="{StaticResource AccentBrush}" />
+                                <Setter Property="Foreground" Value="#0B1013" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- One step of the browser breadcrumb. Deliberately looks like text rather than a
+             button: the last crumb is where you are, and only the earlier ones are worth a click. -->
+        <Style x:Key="Crumb" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource TextDimBrush}" />
+            <Setter Property="FontSize" Value="11.5" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Padding" Value="0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <ContentPresenter VerticalAlignment="Center" />
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+            <Style.Triggers>
+                <Trigger Property="IsMouseOver" Value="True">
+                    <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+                </Trigger>
+                <Trigger Property="IsEnabled" Value="False">
+                    <Setter Property="Foreground" Value="{StaticResource TextBrush}" />
+                    <Setter Property="Cursor" Value="Arrow" />
+                </Trigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- One row of the browser. A button rather than a ListBoxItem because a click here is an
+             action (walk into this folder, choose this preset) and not a selection to be confirmed
+             later. -->
+        <Style x:Key="BrowserRow" TargetType="Button">
+            <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Padding" Value="9,6" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root" Background="Transparent" CornerRadius="5" Padding="{TemplateBinding Padding}">
+                            <ContentPresenter />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="{StaticResource SurfaceRaisedBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- The way into a row, separate from the row itself. -->
+        <Style x:Key="OpenChevron" TargetType="Button">
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="FontSize" Value="13" />
+            <Setter Property="Foreground" Value="{StaticResource TextFaintBrush}" />
+            <Setter Property="Margin" Value="8,0,0,0" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Border x:Name="Root" Background="Transparent" CornerRadius="4" Padding="7,1">
+                            <ContentPresenter HorizontalAlignment="Center" VerticalAlignment="Center" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Root" Property="Background" Value="{StaticResource BorderBrush}" />
+                                <Setter Property="Foreground" Value="{StaticResource AccentBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextFaintBrush}" />
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="Margin" Value="0,0,0,5" />
+        </Style>
+    </Window.Resources>
+
+    <Border Background="{StaticResource SurfaceBrush}"
+            BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="10">
+        <!-- The Ableton panel can push the editor past the bottom of a small screen, so the
+             content scrolls rather than the Save button becoming unreachable. -->
+        <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+        <StackPanel Margin="22,18,22,18">
+
+            <!-- Header with a live preview of the tile being edited. -->
+            <Grid MouseLeftButtonDown="Header_MouseLeftButtonDown">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                </Grid.ColumnDefinitions>
+
+                <Border x:Name="PreviewTile" Grid.Column="0" Width="62" Height="62" CornerRadius="10"
+                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                    <Grid>
+                        <Viewbox Margin="16" Stretch="Uniform">
+                            <Grid>
+                                <Path x:Name="PreviewIcon" Style="{StaticResource LineIcon}" />
+                                <TextBlock x:Name="PreviewGlyph" FontFamily="{StaticResource GlyphFont}" />
+                            </Grid>
+                        </Viewbox>
+                        <Image x:Name="PreviewImage" Margin="11" Stretch="Uniform" Visibility="Collapsed" />
+                    </Grid>
+                </Border>
+
+                <StackPanel Grid.Column="1" Margin="16,0,0,0" VerticalAlignment="Center">
+                    <TextBlock x:Name="TitleText" Text="Editar botón"
+                               Foreground="{StaticResource TextBrush}"
+                               FontSize="14.5" FontWeight="SemiBold" />
+                    <TextBlock x:Name="SubtitleText" Text="Cómo se ve y qué hace al presionarlo"
+                               Foreground="{StaticResource TextDimBrush}"
+                               FontSize="11.5" Margin="0,3,0,0" TextWrapping="Wrap" />
+                </StackPanel>
+            </Grid>
+
+            <!-- Nombre, color e ícono. Agrupados para poder ocultarlos enteros cuando la
+                 ventana se abre para editar un paso de una secuencia, que no tiene nada de eso. -->
+            <StackPanel x:Name="IdentitySection">
+            <!-- Name -->
+            <TextBlock Text="Nombre" Style="{StaticResource FieldLabel}" Margin="0,20,0,5" />
+            <TextBox x:Name="NameBox" TextChanged="NameBox_TextChanged" />
+
+            <!-- Colour -->
+            <TextBlock Text="Color" Style="{StaticResource FieldLabel}" Margin="0,16,0,7" />
+            <StackPanel Orientation="Horizontal">
+                <Button Style="{StaticResource Swatch}" Background="#33C9DC" Tag="#33C9DC" Click="Swatch_Click" />
+                <Button Style="{StaticResource Swatch}" Background="#5FD88F" Tag="#5FD88F" Click="Swatch_Click" />
+                <Button Style="{StaticResource Swatch}" Background="#EAB54C" Tag="#EAB54C" Click="Swatch_Click" />
+                <Button Style="{StaticResource Swatch}" Background="#E8615F" Tag="#E8615F" Click="Swatch_Click" />
+                <Button Style="{StaticResource Swatch}" Background="#C77DFF" Tag="#C77DFF" Click="Swatch_Click" />
+                <Button Style="{StaticResource Swatch}" Background="#7AA2F7" Tag="#7AA2F7" Click="Swatch_Click" />
+                <Button Style="{StaticResource Swatch}" Background="#FF9E64" Tag="#FF9E64" Click="Swatch_Click" />
+                <Button Style="{StaticResource Swatch}" Background="#F7768E" Tag="#F7768E" Click="Swatch_Click" />
+                <Button Style="{StaticResource Swatch}" Background="#A7AEBB" Tag="#A7AEBB" Click="Swatch_Click" />
+                <TextBox x:Name="ColorBox" Width="86" Padding="8,5" Margin="6,0,0,0"
+                         TextChanged="ColorBox_TextChanged" />
+            </StackPanel>
+
+            <!-- Icon -->
+            <TextBlock Text="Ícono" Style="{StaticResource FieldLabel}" Margin="0,16,0,7" />
+            <ItemsControl x:Name="GlyphList">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <WrapPanel />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemTemplate>
+                    <DataTemplate>
+                        <Button Style="{StaticResource GlyphChoice}" Tag="{Binding}" Click="Glyph_Click"
+                                ToolTip="{Binding}">
+                            <Viewbox Width="18" Height="18">
+                                <Path Style="{StaticResource LineIcon}"
+                                      Data="{Binding Converter={StaticResource IconGeometry}}"
+                                      Stroke="{StaticResource TextDimBrush}" />
+                            </Viewbox>
+                        </Button>
+                    </DataTemplate>
+                </ItemsControl.ItemTemplate>
+            </ItemsControl>
+
+            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                <Button Content="Usar una imagen…" Style="{StaticResource SecondaryButton}"
+                        Padding="12,6" Click="PickImage_Click" />
+                <Button x:Name="ClearImageButton" Content="Quitar imagen" Style="{StaticResource SecondaryButton}"
+                        Padding="12,6" Margin="7,0,0,0" Click="ClearImage_Click" Visibility="Collapsed" />
+            </StackPanel>
+
+            <!-- Which of the two the image wants is not something to guess: a logo wants all of
+                 itself visible, a photo wants the square covered. -->
+            <StackPanel x:Name="FitPanel" Orientation="Horizontal" Margin="0,8,0,0" Visibility="Collapsed">
+                <RadioButton x:Name="FitOption" GroupName="IconFit" Content="Ajustar" IsChecked="True"
+                             Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"
+                             ToolTip="La imagen entera, con aire alrededor. Para logos."
+                             Checked="IconFit_Checked" />
+                <RadioButton x:Name="FillOption" GroupName="IconFit" Content="Rellenar" Margin="14,0,0,0"
+                             Foreground="{StaticResource TextBrush}" VerticalAlignment="Center"
+                             ToolTip="Llena el cuadrado, recortando lo que sobra. Para fotos."
+                             Checked="IconFit_Checked" />
+            </StackPanel>
+
+            </StackPanel>
+
+            <!-- Action (buttons only) -->
+            <StackPanel x:Name="ActionSection">
+                <Rectangle Height="1" Fill="{StaticResource BorderBrush}" Margin="0,20,0,16" />
+
+                <TextBlock Text="Acción" Style="{StaticResource FieldLabel}" Margin="0,0,0,8" />
+                <!-- WrapPanel y no StackPanel: cinco opciones ya no entran en el ancho de la
+                     ventana, y en fila única la última queda cortada fuera del borde. -->
+                <WrapPanel>
+                    <RadioButton x:Name="NoneChoice" Style="{StaticResource CommandChip}" Content="Ninguna"
+                                 Checked="ActionKind_Changed" />
+                    <RadioButton x:Name="PathChoice" Style="{StaticResource CommandChip}" Content="Abrir carpeta o archivo"
+                                 Checked="ActionKind_Changed" />
+                    <RadioButton x:Name="UrlChoice" Style="{StaticResource CommandChip}" Content="Abrir web"
+                                 Checked="ActionKind_Changed" />
+                    <RadioButton x:Name="MixerChoice" Style="{StaticResource CommandChip}" Content="Mixer de Ableton"
+                                 Checked="ActionKind_Changed" />
+                    <RadioButton x:Name="AbletonChoice" Style="{StaticResource CommandChip}" Content="Ableton Live"
+                                 Checked="ActionKind_Changed" />
+                    <RadioButton x:Name="LoadChoice" Style="{StaticResource CommandChip}" Content="Cargar dispositivo"
+                                 Checked="ActionKind_Changed" />
+                    <RadioButton x:Name="LiveSetChoice" Style="{StaticResource CommandChip}" Content="Abrir proyecto de Live"
+                                 Checked="ActionKind_Changed" />
+                    <RadioButton x:Name="MacroChoice" Style="{StaticResource CommandChip}" Content="Varias acciones"
+                                 Checked="ActionKind_Changed" />
+                    <RadioButton x:Name="HotkeyChoice" Style="{StaticResource CommandChip}" Content="Atajo de teclado"
+                                 Checked="ActionKind_Changed" />
+                </WrapPanel>
+
+                <!-- Cargar un rack, preset o plugin del browser de Live. -->
+                <StackPanel x:Name="LoadPanel" Margin="0,16,0,0" Visibility="Collapsed">
+                    <TextBlock Text="Sección del browser" Style="{StaticResource FieldLabel}" />
+                    <ItemsControl x:Name="BrowserCategoryList">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <RadioButton Style="{StaticResource CommandChip}"
+                                             GroupName="BrowserCategory"
+                                             Content="{Binding Label}"
+                                             Tag="{Binding Value}"
+                                             IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                             Checked="BrowserCategory_Checked" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- The picker. Everything in it comes from Live's own browser rather than
+                         from the disk, because load_item can only reach what Live has indexed: a
+                         file dialog here would happily offer .adg files that fail at press time. -->
+                    <TextBlock Text="Buscar" Style="{StaticResource FieldLabel}" Margin="0,12,0,5" />
+                    <TextBox x:Name="BrowserSearchBox" TextChanged="BrowserSearch_Changed" />
+
+                    <ItemsControl x:Name="BrowserCrumbs" Margin="0,10,0,0">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Orientation="Horizontal">
+                                    <Button Style="{StaticResource Crumb}"
+                                            Content="{Binding Label}"
+                                            Tag="{Binding Depth}"
+                                            IsEnabled="{Binding IsClickable}"
+                                            Click="Crumb_Click" />
+                                    <TextBlock Text="&#x203A;" Margin="6,0,6,0"
+                                               Foreground="{StaticResource TextFaintBrush}"
+                                               FontSize="11.5"
+                                               Visibility="{Binding SeparatorVisibility}" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <Border Margin="0,8,0,0" CornerRadius="7" MinHeight="120"
+                            Background="{StaticResource BackgroundBrush}"
+                            BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                        <Grid>
+                            <ScrollViewer MaxHeight="228" VerticalScrollBarVisibility="Auto"
+                                          HorizontalScrollBarVisibility="Disabled" Padding="4">
+                                <ItemsControl x:Name="BrowserList">
+                                    <ItemsControl.ItemTemplate>
+                                        <DataTemplate>
+                                            <Button Style="{StaticResource BrowserRow}"
+                                                    Tag="{Binding}" Click="BrowserRow_Click"
+                                                    ToolTip="{Binding Tip}">
+                                                <Grid>
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <TextBlock Grid.Column="0" Text="{Binding Glyph}"
+                                                               FontFamily="{StaticResource GlyphFont}"
+                                                               FontSize="12" Margin="0,0,8,0"
+                                                               VerticalAlignment="Center"
+                                                               Foreground="{StaticResource TextFaintBrush}" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding Name}"
+                                                               FontSize="12.5" TextTrimming="CharacterEllipsis"
+                                                               VerticalAlignment="Center"
+                                                               Foreground="{Binding Emphasis}" />
+                                                    <TextBlock Grid.Column="2" Text="{Binding Tick}"
+                                                               FontSize="11" Margin="8,0,0,0"
+                                                               VerticalAlignment="Center"
+                                                               Foreground="{StaticResource AccentBrush}" />
+                                                    <Button Grid.Column="3" Content="&#x203A;"
+                                                            Style="{StaticResource OpenChevron}"
+                                                            Tag="{Binding}" Click="BrowserOpen_Click"
+                                                            Visibility="{Binding OpenVisibility}"
+                                                            ToolTip="Ver lo que tiene adentro" />
+                                                </Grid>
+                                            </Button>
+                                        </DataTemplate>
+                                    </ItemsControl.ItemTemplate>
+                                </ItemsControl>
+                            </ScrollViewer>
+
+                            <TextBlock x:Name="BrowserMessage" Margin="16" TextWrapping="Wrap"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       TextAlignment="Center" FontSize="11.5"
+                                       Foreground="{StaticResource TextFaintBrush}" />
+                        </Grid>
+                    </Border>
+
+                    <TextBlock x:Name="BrowserStatusText" Margin="0,6,0,0" TextWrapping="Wrap"
+                               FontSize="11" Foreground="{StaticResource TextFaintBrush}" />
+
+                    <Border Margin="0,10,0,0" Padding="11,9" CornerRadius="7"
+                            Background="{StaticResource BackgroundBrush}">
+                        <StackPanel>
+                            <TextBlock Text="Dispositivo elegido" FontSize="10.5"
+                                       Foreground="{StaticResource TextFaintBrush}" />
+                            <TextBlock x:Name="DeviceChoiceText" Margin="0,3,0,0" FontSize="12.5"
+                                       FontWeight="SemiBold" TextWrapping="Wrap"
+                                       Foreground="{StaticResource TextBrush}" />
+                            <TextBlock x:Name="DeviceChoiceDetail" Margin="0,3,0,0" FontSize="11"
+                                       TextWrapping="Wrap"
+                                       Foreground="{StaticResource TextFaintBrush}" />
+                        </StackPanel>
+                    </Border>
+
+                    <Border Margin="0,14,0,0" Padding="12,10" CornerRadius="7"
+                            Background="{StaticResource BackgroundBrush}">
+                        <StackPanel>
+                            <TextBlock Text="Se carga en la track que tengas seleccionada en Live"
+                                       Foreground="{StaticResource TextBrush}" FontSize="12"
+                                       FontWeight="SemiBold" TextWrapping="Wrap" />
+                            <TextBlock Text="Igual que arrastrar desde el browser de Live. Para apuntar a una track fija, poné un botón «Seleccionar track» al lado."
+                                       Foreground="{StaticResource TextDimBrush}" FontSize="11.5"
+                                       TextWrapping="Wrap" Margin="0,4,0,0" />
+                            <TextBlock Text="Sólo se puede cargar lo que Live ya indexó en su browser. Un archivo suelto del disco no es alcanzable."
+                                       Foreground="{StaticResource TextFaintBrush}" FontSize="11"
+                                       TextWrapping="Wrap" Margin="0,6,0,0" />
+                            <TextBlock x:Name="LoadWarningText"
+                                       Foreground="{StaticResource DangerBrush}" FontSize="11.5"
+                                       TextWrapping="Wrap" Margin="0,6,0,0" Visibility="Collapsed" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Ableton. The whole panel is driven by the command catalogue: which fields show
+                     up, what they are called and what range they accept all come from there, so
+                     adding a command never means touching this markup. -->
+                <StackPanel x:Name="AbletonPanel" Margin="0,16,0,0" Visibility="Collapsed">
+                    <TextBlock Text="Categoría" Style="{StaticResource FieldLabel}" />
+                    <ItemsControl x:Name="GroupList">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <RadioButton Style="{StaticResource CommandChip}"
+                                             GroupName="AbletonGroup"
+                                             Content="{Binding Label}"
+                                             Tag="{Binding Value}"
+                                             IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                             Checked="AbletonGroup_Checked" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock Text="Comando" Style="{StaticResource FieldLabel}" Margin="0,12,0,5" />
+                    <ItemsControl x:Name="CommandList">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel />
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <RadioButton Style="{StaticResource CommandChip}"
+                                             GroupName="AbletonCommand"
+                                             Content="{Binding Label}"
+                                             Tag="{Binding Value}"
+                                             IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                                             Checked="AbletonCommand_Checked" />
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <!-- Track -->
+                    <StackPanel x:Name="TrackRow" Margin="0,12,0,0">
+                        <TextBlock Text="Track" Style="{StaticResource FieldLabel}" />
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="TrackSelectedChoice" Style="{StaticResource CommandChip}"
+                                         GroupName="AbletonTrack" Content="La seleccionada"
+                                         Checked="TrackKind_Checked" />
+                            <RadioButton x:Name="TrackMasterChoice" Style="{StaticResource CommandChip}"
+                                         GroupName="AbletonTrack" Content="Master"
+                                         Checked="TrackKind_Checked" />
+                            <RadioButton x:Name="TrackNumberChoice" Style="{StaticResource CommandChip}"
+                                         GroupName="AbletonTrack" Content="Por número"
+                                         Checked="TrackKind_Checked" />
+                            <TextBox x:Name="TrackNumberBox" Width="62" Padding="8,5" Margin="2,0,0,5"
+                                     Visibility="Collapsed" TextChanged="AbletonField_Changed" />
+                        </StackPanel>
+                        <TextBlock Text="«La seleccionada» sigue a Live mientras trabajás; un número fijo deja de apuntar al mismo lado si insertás una track antes."
+                                   Foreground="{StaticResource TextFaintBrush}" FontSize="11"
+                                   TextWrapping="Wrap" Margin="0,2,0,0" />
+                    </StackPanel>
+
+                    <!-- Scene -->
+                    <StackPanel x:Name="SceneRow" Margin="0,12,0,0">
+                        <TextBlock Text="Escena" Style="{StaticResource FieldLabel}" />
+                        <TextBox x:Name="SceneBox" Width="80" HorizontalAlignment="Left"
+                                 TextChanged="AbletonField_Changed" />
+                        <TextBlock Text="Dejalo vacío para usar la escena seleccionada."
+                                   Foreground="{StaticResource TextFaintBrush}" FontSize="11"
+                                   Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <!-- Send. Live letters them in its own mixer, so the field says the letter back. -->
+                    <StackPanel x:Name="SendRow" Margin="0,12,0,0">
+                        <TextBlock Text="Send" Style="{StaticResource FieldLabel}" />
+                        <StackPanel Orientation="Horizontal">
+                            <TextBox x:Name="SendBox" Width="62" HorizontalAlignment="Left"
+                                     TextChanged="AbletonField_Changed" />
+                            <TextBlock x:Name="SendHint" VerticalAlignment="Center" Margin="9,0,0,0"
+                                       Foreground="{StaticResource TextFaintBrush}" FontSize="11" />
+                        </StackPanel>
+                        <TextBlock Text="1 es el send A, 2 el B, y así. Son los returns que tenga el set."
+                                   Foreground="{StaticResource TextFaintBrush}" FontSize="11"
+                                   TextWrapping="Wrap" Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <!-- On or off, for the commands that set instead of toggling. -->
+                    <StackPanel x:Name="StateRow" Margin="0,12,0,0">
+                        <TextBlock Text="Dejarlo en" Style="{StaticResource FieldLabel}" />
+                        <StackPanel Orientation="Horizontal">
+                            <RadioButton x:Name="StateOnChoice" Style="{StaticResource CommandChip}"
+                                         GroupName="AbletonState" Content="Encendido"
+                                         Checked="AbletonState_Checked" />
+                            <RadioButton x:Name="StateOffChoice" Style="{StaticResource CommandChip}"
+                                         GroupName="AbletonState" Content="Apagado"
+                                         Checked="AbletonState_Checked" />
+                        </StackPanel>
+                        <TextBlock Text="A diferencia del comando que alterna, éste deja siempre el mismo estado sin importar cómo estaba."
+                                   Foreground="{StaticResource TextFaintBrush}" FontSize="11"
+                                   TextWrapping="Wrap" Margin="0,2,0,0" />
+                    </StackPanel>
+
+                    <!-- Value -->
+                    <StackPanel x:Name="ValueRow" Margin="0,12,0,0">
+                        <TextBlock x:Name="ValueLabel" Style="{StaticResource FieldLabel}" />
+                        <TextBox x:Name="ValueBox" Width="110" HorizontalAlignment="Left"
+                                 TextChanged="AbletonField_Changed" />
+                        <TextBlock x:Name="ValueHint"
+                                   Foreground="{StaticResource TextFaintBrush}" FontSize="11"
+                                   TextWrapping="Wrap" Margin="0,5,0,0" />
+                    </StackPanel>
+
+                    <Border Margin="0,14,0,0" Padding="12,10" CornerRadius="7"
+                            Background="{StaticResource BackgroundBrush}">
+                        <StackPanel>
+                            <TextBlock x:Name="AbletonSummaryText"
+                                       Foreground="{StaticResource TextBrush}" FontSize="12"
+                                       TextWrapping="Wrap" />
+                            <TextBlock x:Name="AbletonConnectionText"
+                                       Foreground="{StaticResource TextFaintBrush}" FontSize="11"
+                                       TextWrapping="Wrap" Margin="0,5,0,0" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <StackPanel x:Name="PathPanel" Margin="0,14,0,0" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="PathBox" Grid.Column="0" TextChanged="PathBox_TextChanged" />
+                        <Button Grid.Column="1" Content="Archivo…" Style="{StaticResource SecondaryButton}"
+                                Padding="11,6" Margin="7,0,0,0" Click="BrowseFile_Click" />
+                        <Button Grid.Column="2" Content="Carpeta…" Style="{StaticResource SecondaryButton}"
+                                Padding="11,6" Margin="6,0,0,0" Click="BrowseFolder_Click" />
+                    </Grid>
+
+                    <Border x:Name="ExecutableWarning" Margin="0,12,0,0" Padding="12,10"
+                            CornerRadius="7" Background="#1FEAB54C" Visibility="Collapsed">
+                        <StackPanel>
+                            <TextBlock Text="Esta ruta ejecuta un programa."
+                                       Foreground="{StaticResource TextBrush}" FontSize="12" FontWeight="SemiBold" />
+                            <TextBlock Text="Confirmá que querés que este botón lo inicie. Podés cambiarlo cuando quieras."
+                                       Foreground="{StaticResource TextDimBrush}" FontSize="11.5"
+                                       TextWrapping="Wrap" Margin="0,3,0,9" />
+                            <CheckBox x:Name="AcknowledgeCheck" Content="Sí, permitir que este botón lo ejecute" />
+                        </StackPanel>
+                    </Border>
+                </StackPanel>
+
+                <!-- Abrir un .als: Windows lo manda a Live como un doble clic en el Explorador, así
+                     que con decir el nombre del botón se abre el proyecto. -->
+                <StackPanel x:Name="LiveSetPanel" Margin="0,14,0,0" Visibility="Collapsed">
+                    <Grid>
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+                        <TextBox x:Name="LiveSetBox" Grid.Column="0" IsReadOnly="True"
+                                 Background="{StaticResource BackgroundBrush}"
+                                 Foreground="{StaticResource TextBrush}"
+                                 BorderBrush="{StaticResource BorderBrush}" />
+                        <Button Grid.Column="1" Content="Elegir .als…" Style="{StaticResource SecondaryButton}"
+                                Padding="11,6" Margin="7,0,0,0" Click="BrowseLiveSet_Click" />
+                    </Grid>
+
+                    <TextBlock Margin="0,8,0,0" FontSize="11" TextWrapping="Wrap"
+                               Foreground="{StaticResource TextFaintBrush}"
+                               Text="Elegí el archivo .als del proyecto. Al apretar el botón, Windows lo abre con Ableton Live." />
+                </StackPanel>
+
+                <StackPanel x:Name="UrlPanel" Margin="0,14,0,0" Visibility="Collapsed">
+                    <TextBox x:Name="UrlBox" />
+                    <TextBlock Text="Sólo direcciones http o https."
+                               Foreground="{StaticResource TextFaintBrush}" FontSize="11" Margin="0,6,0,0" />
+                </StackPanel>
+
+                <!-- La salida de emergencia: un programa que no tiene otra forma de entrada se
+                     maneja como lo maneja una persona, con su propio atajo. -->
+                <StackPanel x:Name="HotkeyPanel" Margin="0,14,0,0" Visibility="Collapsed">
+                    <TextBlock Text="Combinación" Style="{StaticResource FieldLabel}" />
+                    <TextBox x:Name="HotkeyKeysBox" IsReadOnly="True"
+                             PreviewKeyDown="HotkeyKeys_PreviewKeyDown" />
+                    <TextBlock x:Name="HotkeyKeysHint" Margin="0,6,0,0" TextWrapping="Wrap"
+                               Foreground="{StaticResource TextFaintBrush}" FontSize="11"
+                               Text="Hacé clic acá y apretá la combinación que querés mandar." />
+
+                    <TextBlock Text="Programa" Style="{StaticResource FieldLabel}" Margin="0,12,0,5" />
+                    <TextBox x:Name="HotkeyProgramBox" />
+                    <TextBlock TextWrapping="Wrap" Margin="0,6,0,0"
+                               Foreground="{StaticResource TextFaintBrush}" FontSize="11"
+                               Text="Cómo empieza el nombre del programa: «Ableton Live», «chrome», «Photoshop». DigitalDeck lo trae al frente antes de apretar las teclas, porque al tocar el botón el foco lo tiene el deck." />
+                </StackPanel>
+                <!-- Varias acciones de un saque. Cada fila es un paso; el orden es el de la lista
+                     y la espera de cada uno corre antes de ejecutarlo. -->
+                <StackPanel x:Name="MacroPanel" Margin="0,14,0,0" Visibility="Collapsed">
+                    <ItemsControl x:Name="MacroList">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Margin="0,0,0,6" Padding="10,8" CornerRadius="7"
+                                        Background="{StaticResource BackgroundBrush}"
+                                        BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+                                    <Grid>
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+
+                                        <TextBlock Grid.Column="0" Text="{Binding Position}" VerticalAlignment="Center"
+                                                   Foreground="{StaticResource TextFaintBrush}"
+                                                   FontSize="12" FontWeight="SemiBold" Margin="0,0,9,0" />
+
+                                        <StackPanel Grid.Column="1">
+                                            <TextBlock Text="{Binding Description}" TextWrapping="Wrap"
+                                                       Foreground="{StaticResource TextBrush}" FontSize="12" />
+                                            <StackPanel Orientation="Horizontal" Margin="0,4,0,0">
+                                                <TextBlock Text="Esperar antes:" VerticalAlignment="Center"
+                                                           Foreground="{StaticResource TextFaintBrush}" FontSize="11" />
+                                                <TextBox Width="48" Padding="6,3" Margin="6,0,0,0"
+                                                         Text="{Binding DelaySeconds, Mode=TwoWay, UpdateSourceTrigger=PropertyChanged}"
+                                                         TextChanged="MacroDelay_Changed" Tag="{Binding}" />
+                                                <TextBlock Text="s" VerticalAlignment="Center" Margin="4,0,0,0"
+                                                           Foreground="{StaticResource TextFaintBrush}" FontSize="11" />
+                                            </StackPanel>
+                                        </StackPanel>
+
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button Content="↑" Style="{StaticResource SecondaryButton}" Padding="8,3"
+                                                    ToolTip="Subir un lugar" Tag="{Binding}" Click="MacroUp_Click" />
+                                            <Button Content="↓" Style="{StaticResource SecondaryButton}" Padding="8,3"
+                                                    Margin="4,0,0,0" ToolTip="Bajar un lugar" Tag="{Binding}"
+                                                    Click="MacroDown_Click" />
+                                            <Button Content="Editar" Style="{StaticResource SecondaryButton}" Padding="9,3"
+                                                    Margin="4,0,0,0" Tag="{Binding}" Click="MacroEdit_Click" />
+                                            <Button Content="Quitar" Style="{StaticResource SecondaryButton}" Padding="9,3"
+                                                    Margin="4,0,0,0" Tag="{Binding}" Click="MacroRemove_Click" />
+                                        </StackPanel>
+                                    </Grid>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <TextBlock x:Name="MacroEmptyText" Margin="0,2,0,0" FontSize="11.5" TextWrapping="Wrap"
+                               Foreground="{StaticResource TextFaintBrush}"
+                               Text="Todavía no hay pasos. Agregá el primero: una web, un programa, un comando de Live." />
+
+                    <Button Content="Agregar acción…" Style="{StaticResource SecondaryButton}"
+                            Padding="12,6" Margin="0,8,0,0" HorizontalAlignment="Left"
+                            Click="MacroAdd_Click" />
+
+                    <CheckBox x:Name="MacroContinueCheck" Margin="0,10,0,0" IsChecked="True"
+                              Foreground="{StaticResource TextBrush}" FontSize="11.5"
+                              Content="Seguir con el resto aunque un paso falle" />
+
+                    <TextBlock Margin="0,6,0,0" FontSize="11" TextWrapping="Wrap"
+                               Foreground="{StaticResource TextFaintBrush}"
+                               Text="Los pasos corren en orden, uno después del otro. La espera sirve para darle tiempo a un programa a abrirse antes del paso que lo usa." />
+                </StackPanel>
+
+            </StackPanel>
+
+            <TextBlock x:Name="WarningText"
+                       Foreground="{StaticResource DangerBrush}"
+                       FontSize="11.5" TextWrapping="Wrap"
+                       Margin="0,14,0,0"
+                       Visibility="Collapsed" />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <Button Content="Cancelar" Style="{StaticResource SecondaryButton}"
+                        Click="Cancel_Click" Margin="0,0,8,0" />
+                <Button Content="Guardar" Style="{StaticResource PrimaryButton}"
+                        Click="Save_Click" IsDefault="True" />
+            </StackPanel>
+        </StackPanel>
+        </ScrollViewer>
+    </Border>
+</Window>

@@ -1,0 +1,57 @@
+# Build output
+bin/
+obj/
+[Dd]ebug/
+[Rr]elease/
+artifacts/
+
+# Visual Studio / Rider / VS Code
+.vs/
+.idea/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+.vscode/
+
+# Test results
+[Tt]est[Rr]esult*/
+*.trx
+*.coverage
+*.coveragexml
+coverage*.json
+coverage*.xml
+
+# NuGet
+*.nupkg
+*.snupkg
+packages/
+!packages/build/
+
+# Publish output
+publish/
+*.publishsettings
+
+# Lo que arma herramientas/empaquetar.py, y las carpetas sueltas que se reparten a mano.
+dist/
+[Cc]ompi*/
+[Cc]ompilado*/
+[Cc]ompi*.zip
+[Cc]ompilado*.zip
+
+# DigitalDeck user data lives in %APPDATA%\DigitalDeck, never in the repo,
+# but exported packs sometimes get dropped here while testing.
+*.deckpack
+
+# Menos las plantillas que se reparten con la app: DigitalDeck.Data.csproj las embebe con un
+# comodín, así que un clon sin ellas compila una app sin una sola plantilla adentro.
+!plantillas/*.deckpack
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
+
+# Python (the Remote Script that runs inside Live)
+__pycache__/
+*.pyc

@@ -1,0 +1,42 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Las integraciones que andan en cualquier lado.
+
+    `net8.0` a secas desde el paso 3 del port: acá está el puente OSC con Live, el instalador del
+    Remote Script y los botones que abren carpetas y webs, y ninguno de ellos tenía una línea de
+    Win32. Lo que sí la tiene vive en DigitalDeck.Integrations.Windows, al lado.
+
+    El corte importa más de lo que parece: mientras esto era net8.0-windows, el shell de Avalonia
+    no podía hablar con Live aunque el código fuera portable, sólo por el proyecto en el que estaba.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DigitalDeck.Core\DigitalDeck.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DigitalDeck.Integrations.Tests" />
+  </ItemGroup>
+
+  <!--
+    El Remote Script viaja adentro de la app.
+
+    Es Python que corre adentro de Ableton, así que no se puede compilar ni referenciar: hay que
+    copiarlo a la User Library de Live antes de que Live lo cargue. Embeberlo acá es lo que hace
+    posible instalarlo desde un solo .exe; sin eso, la única forma de instalar el script es un
+    script de PowerShell desde un clon del repo, y cualquiera que reciba una build tiene un puente
+    que nunca puede levantar.
+
+    LogicalName va explícito porque estos archivos viven fuera de la carpeta de este proyecto,
+    donde el nombre que derivaría MSBuild no es ni estable ni legible. RemoteScriptInstaller busca
+    exactamente este prefijo, y un test verifica que todos los .py de la carpeta de origen entraron.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\DigitalDeck.RemoteScript\DigitalDeck\**\*.py" Exclude="..\DigitalDeck.RemoteScript\DigitalDeck\**\__pycache__\**" LogicalName="RemoteScript/%(RecursiveDir)%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

@@ -1,0 +1,192 @@
+{
+  "ping": [
+    "/digitaldeck/pong",
+    [
+      "2.6.0",
+      "12.4.3",
+      "12",
+      11010,
+      11011
+    ]
+  ],
+  "Pro-MB": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "pro-mb",
+      1,
+      "FabFilter Pro-MB\tquery:Plugins#VST:Custom:FabFilter:FabFilter%20Pro-MB\t1\t0\t0\nFabFilter Pro-MB (Mono)\tquery:Plugins#VST:Custom:FabFilter:FabFilter%20Pro-MB%20(Mono)\t1\t0\t0\nPro-MB\tquery:Plugins#VST3:FabFilter:Pro-MB\t1\t0\t1\nPro-MB.vstpreset\tquery:Plugins#VST3:FabFilter:Pro-MB:FileId_21213\t1\t0\t0"
+    ]
+  ],
+  "Pro-Q": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "pro-q",
+      1,
+      "FabFilter Pro-Q 3\tquery:Plugins#VST:Custom:FabFilter:FabFilter%20Pro-Q%203\t1\t0\t0\nFabFilter Pro-Q 4\tquery:Plugins#VST:Custom:FabFilter:FabFilter%20Pro-Q%204\t1\t0\t0\nPro-Q 3\tquery:Plugins#VST3:FabFilter:Pro-Q%203\t1\t0\t0\nPro-Q 4\tquery:Plugins#VST3:FabFilter:Pro-Q%204\t1\t0\t1\nPro-Q 4-1.vstpreset\tquery:Plugins#VST3:FabFilter:Pro-Q%204:FileId_21214\t1\t0\t0\nPro-Q 4.vstpreset\tquery:Plugins#VST3:FabFilter:Pro-Q%204:FileId_21215\t1\t0\t0"
+    ]
+  ],
+  "Pro-DS": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "pro-ds",
+      1,
+      "FabFilter Pro-DS\tquery:Plugins#VST:Custom:FabFilter:FabFilter%20Pro-DS\t1\t0\t0\nFabFilter Pro-DS (Mono)\tquery:Plugins#VST:Custom:FabFilter:FabFilter%20Pro-DS%20(Mono)\t1\t0\t0\nPro-DS\tquery:Plugins#VST3:FabFilter:Pro-DS\t1\t0\t1"
+    ]
+  ],
+  "soothe": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "soothe",
+      1,
+      "soothe2\tquery:Plugins#VST3:oeksound:soothe2\t1\t0\t0"
+    ]
+  ],
+  "Z-Noise": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "z-noise",
+      1,
+      "Z-Noise Mono\tquery:Plugins#VST3:Waves:Z-Noise%20Mono\t1\t0\t0\nZ-Noise Stereo\tquery:Plugins#VST3:Waves:Z-Noise%20Stereo\t1\t0\t0"
+    ]
+  ],
+  "NS1": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "ns1",
+      1,
+      "NS1 Mono\tquery:Plugins#VST3:Waves:NS1%20Mono\t1\t0\t0\nNS1 Stereo\tquery:Plugins#VST3:Waves:NS1%20Stereo\t1\t0\t0"
+    ]
+  ],
+  "VintageVerb": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "vintageverb",
+      1,
+      "ValhallaVintageVerb_x64\tquery:Plugins#VST:Custom:ValhallaDSP:ValhallaVintageVerb_x64\t1\t0\t0\nValhallaVintageVerb\tquery:Plugins#VST3:Valhalla%20DSP:ValhallaVintageVerb\t1\t0\t1\nValhallaVintageVerb.vstpreset\tquery:Plugins#VST3:Valhalla%20DSP:ValhallaVintageVerb:FileId_21218\t1\t0\t0"
+    ]
+  ],
+  "CL 1B": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "cl 1b",
+      1,
+      "UAD Tube-Tech CL 1B\tquery:Plugins#VST:Custom:Universal%20Audio:Compressors%20and%20Limiters:UAD%20Tube-Tech%20CL%201B\t1\t0\t0\nUAD Tube-Tech CL 1B mk II\tquery:Plugins#VST:Custom:Universal%20Audio:Compressors%20and%20Limiters:UAD%20Tube-Tech%20CL%201B%20mk%20II\t1\t0\t0\nUAD Tube-Tech CL 1B mk II(m)\tquery:Plugins#VST:Custom:Universal%20Audio:UAD%20Mono:UAD%20Tube-Tech%20CL%201B%20mk%20II(m)\t1\t0\t0\nUAD Tube-Tech CL 1B(m)\tquery:Plugins#VST:Custom:Universal%20Audio:UAD%20Mono:UAD%20Tube-Tech%20CL%201B(m)\t1\t0\t0\nTube-Tech CL 1B\tquery:Plugins#VST3:Softube:Tube-Tech%20CL%201B\t1\t0\t0\nUAD Tube-Tech CL 1B\tquery:Plugins#VST3:Universal%20Audio:UAD%20Tube-Tech%20CL%201B\t1\t0\t0\nUAD Tube-Tech CL 1B mk II\tquery:Plugins#VST3:Universal%20Audio:UAD%20Tube-Tech%20CL%201B%20mk%20II\t1\t0\t0"
+    ]
+  ],
+  "CLA-2A": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "cla-2a",
+      1,
+      "CLA-2A Mono\tquery:Plugins#VST3:Waves:CLA-2A%20Mono\t1\t0\t0\nCLA-2A Stereo\tquery:Plugins#VST3:Waves:CLA-2A%20Stereo\t1\t0\t0"
+    ]
+  ],
+  "Vox": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "vox",
+      1,
+      "UAD Manley VOXBOX\tquery:Plugins#VST:Custom:Universal%20Audio:Channel%20Strip%20and%20Preamp:UAD%20Manley%20VOXBOX\t1\t0\t0\nUAD C-Suite C-Vox\tquery:Plugins#VST:Custom:Universal%20Audio:Special%20Processing:UAD%20C-Suite%20C-Vox\t1\t0\t0\nUAD C-Suite C-Vox(m)\tquery:Plugins#VST:Custom:Universal%20Audio:UAD%20Mono:UAD%20C-Suite%20C-Vox(m)\t1\t0\t0\nUAD Manley VOXBOX(m)\tquery:Plugins#VST:Custom:Universal%20Audio:UAD%20Mono:UAD%20Manley%20VOXBOX(m)\t1\t0\t0\nOctavox\tquery:Plugins#VST3:Eventide:Octavox\t1\t0\t0\nQuadravox\tquery:Plugins#VST3:Eventide:Quadravox\t1\t0\t0\nUAD C-Suite C-Vox\tquery:Plugins#VST3:Universal%20Audio:UAD%20C-Suite%20C-Vox\t1\t0\t0\nUAD Manley VOXBOX\tquery:Plugins#VST3:Universal%20Audio:UAD%20Manley%20VOXBOX\t1\t0\t0\nOVox Instrument Stereo\tquery:Plugins#VST3:Waves:OVox%20Instrument%20Stereo\t1\t0\t0\nOVox Mono/Stereo\tquery:Plugins#VST3:Waves:OVox%20Mono/Stereo\t1\t0\t0\nOVox Stereo\tquery:Plugins#VST3:Waves:OVox%20Stereo\t1\t0\t0\nRVox Mono\tquery:Plugins#VST3:Waves:RVox%20Mono\t1\t0\t0\nRVox Stereo\tquery:Plugins#VST3:Waves:RVox%20Stereo\t1\t0\t0"
+    ]
+  ],
+  "ZENOLOGY": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "zenology",
+      1,
+      "ZENOLOGY\tquery:Plugins#VST3:Roland%20Cloud:ZENOLOGY\t1\t0\t0"
+    ]
+  ],
+  "Purity": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "purity",
+      1,
+      "Purity_x64\tquery:Plugins#VST:Custom:Purity_x64\t1\t0\t0"
+    ]
+  ],
+  "Hive": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "hive",
+      1,
+      "Hive\tquery:Plugins#VST:Custom:u-he:Hive\t1\t0\t0\nHive\tquery:Plugins#VST3:u-he:Hive\t1\t0\t1\nHive.vstpreset\tquery:Plugins#VST3:u-he:Hive:FileId_21206\t1\t0\t0"
+    ]
+  ],
+  "Kick": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "kick",
+      1,
+      "OrbitKick64\tquery:Plugins#VST:Custom:AIRWINDOWS:OrbitKick64\t1\t0\t0\nKick 3\tquery:Plugins#VST3:Sonic%20Academy:Kick%203\t1\t0\t0"
+    ]
+  ],
+  "Splice": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "splice",
+      1,
+      "Splice Sounds\tquery:Plugins#VST3:Splice:Splice%20Sounds\t1\t0\t0\nSplice Sounds Listener\tquery:Plugins#VST3:Splice:Splice%20Sounds%20Listener\t1\t0\t0"
+    ]
+  ],
+  "DUNE": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "dune",
+      1,
+      "DUNE 3\tquery:Plugins#VST:Custom:DUNE%203\t1\t0\t0\nDUNE 3\tquery:Plugins#VST3:Synapse%20Audio:DUNE%203\t1\t0\t0"
+    ]
+  ],
+  "Electra": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "electra",
+      1,
+      "Electra\tquery:Plugins#VST:Custom:Tone2:Electra\t1\t0\t0\nElectra\tquery:Plugins#VST3:Tone2:Electra\t1\t0\t1\nOwn  - Electra - Synthe infinito.vstpreset\tquery:Plugins#VST3:Tone2:Electra:FileId_21211\t1\t0\t0"
+    ]
+  ],
+  "Pigments": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "pigments",
+      1,
+      "Pigments\tquery:Plugins#VST:Custom:Arturia:Pigments\t1\t0\t0\nPigments\tquery:Plugins#VST3:Arturia:Pigments\t1\t0\t0"
+    ]
+  ],
+  "Analog Lab": [
+    "/digitaldeck/browser/search",
+    [
+      "plugins",
+      "analog lab",
+      1,
+      "Analog Lab V\tquery:Plugins#VST:Custom:Arturia:Analog%20Lab%20V\t1\t0\t0\nAnalog Lab V\tquery:Plugins#VST3:Arturia:Analog%20Lab%20V\t1\t0\t1\nAnalog Lab V.vstpreset\tquery:Plugins#VST3:Arturia:Analog%20Lab%20V:FileId_21200\t1\t0\t0"
+    ]
+  ],
+  "Delay": [
+    "/digitaldeck/browser/search",
+    [
+      "audio_effects",
+      "delay",
+      1,
+      "Align Delay\tquery:AudioFx#Align%20Delay\t1\t0\t0\nAdlib Delay.adg\tquery:AudioFx#Audio%20Effect%20Rack:Space:FileId_5504\t1\t0\t0\nAmple Space Delay.adg\tquery:AudioFx#Audio%20Effect%20Rack:Space:FileId_5505\t1\t0\t0\nChamber Trio Delay.adg\tquery:AudioFx#Audio%20Effect%20Rack:Space:FileId_5509\t1\t0\t0\nDelayed Hall Reverb.adg\tquery:AudioFx#Audio%20Effect%20Rack:Space:FileId_5513\t1\t0\t0\nDelayed Room Reverb.adg\tquery:AudioFx#Audio%20Effect%20Rack:Space:FileId_5514\t1\t0\t0\nMultiband Delay Notes Stereo .adg\tquery:AudioFx#Audio%20Effect%20Rack:Space:FileId_5528\t1\t0\t0\n1.SLAP DELAY - ECHOBOY - OWN.adg\tquery:AudioFx#Audio%20Effect%20Rack:FileId_24311\t1\t0\t0\nDelay automatizacion - OWN.adg\tquery:AudioFx#Audio%20Effect%20Rack:FileId_24322\t1\t0\t0\nDELAY VOX CONSTANTE -  ECHOBOY - OWN.adg\tquery:AudioFx#Audio%20Effect%20Rack:FileId_24320\t1\t0\t0\nDelay\tquery:AudioFx#Delay\t1\t0\t1\nHigh Freq Delay.adv\tquery:AudioFx#Delay:Clean%20Delay:FileId_8131\t1\t0\t0\nChopped Delay.adv\tquery:AudioFx#Delay:Modulated%20Delay:FileId_8110\t1\t0\t0\nFilter Wobble Delay.adv\tquery:AudioFx#Delay:Modulated%20Delay:FileId_8112\t1\t0\t0\nGlitch Delay.adv\tquery:AudioFx#Delay:Modulated%20Delay:FileId_8113\t1\t0\t0\nPitch Jump Delay.adv\tquery:AudioFx#Delay:Modulated%20Delay:FileId_8114\t1\t0\t0\nSloppy Delay.adv\tquery:AudioFx#Delay:Vintage%20Delay:FileId_8107\t1\t0\t0\nDelay.adv\tquery:AudioFx#Delay:FileId_24300\t1\t0\t0\nMid Filter Delay.adv\tquery:AudioFx#Echo:Clean%20Delay:FileId_7986\t1\t0\t0\nSimple Long Digi Delay.adv\tquery:AudioFx#Echo:Clean%20Delay:FileId_7988\t1\t0\t0\nDelay Syndicate.adv\tquery:AudioFx#Echo:Vintage%20Delay:FileId_7954\t1\t0\t0\nFilter Delay\tquery:AudioFx#Filter%20Delay\t1\t0\t1\nGrain Delay\tquery:AudioFx#Grain%20Delay\t1\t0\t1\nDelayed Blurry Hall.adv\tquery:AudioFx#Hybrid%20Reverb:Hall:FileId_7847\t1\t0\t0\nPitched Down Delay Spiral.adv\tquery:AudioFx#Hybrid%20Reverb:Special:FileId_7812\t1\t0\t0\nGuitar Phased Delay.adv\tquery:AudioFx#Roar:FileId_7493\t1\t0\t0\nDelay Downshift.adv\tquery:AudioFx#Spectral%20Time:FileId_7391\t1\t0\t0\nDelay Reso Glitch.adv\tquery:AudioFx#Spectral%20Time:FileId_7392\t1\t0\t0\nDelay Spray.adv\tquery:AudioFx#Spectral%20Time:FileId_7393\t1\t0\t0"
+    ]
+  ]
+}

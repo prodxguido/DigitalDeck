@@ -1,0 +1,28 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="DigitalDeck.Avalonia.ImportTargetWindow"
+        Title="Importar — DigitalDeck"
+        Width="440" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource Background}">
+
+    <StackPanel Margin="20" Spacing="12">
+        <TextBlock x:Name="Message" Foreground="{StaticResource Text}" FontSize="13"
+                   TextWrapping="Wrap" />
+
+        <StackPanel Spacing="4">
+            <RadioButton x:Name="AsPages" GroupName="destino" IsChecked="True"
+                         Foreground="{StaticResource Text}"
+                         Content="Cada uno como una página nueva" />
+            <RadioButton x:Name="AsGroups" GroupName="destino"
+                         Foreground="{StaticResource Text}"
+                         Content="Como un grupo en la página que estoy usando" />
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="Cancelar" Click="Cancel_Click" />
+            <Button Content="Importar" Click="Import_Click" IsDefault="True" />
+        </StackPanel>
+    </StackPanel>
+</Window>

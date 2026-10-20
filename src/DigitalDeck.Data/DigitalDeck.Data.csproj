@@ -1,0 +1,33 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Dapper" Version="2.1.35" />
+    <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.11" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DigitalDeck.Core\DigitalDeck.Core.csproj" />
+  </ItemGroup>
+
+  <!--
+    The ready-made templates travel inside the app.
+
+    Same reasoning as the Remote Script over in Integrations: a build handed to somebody is one
+    thing, and templates left sitting in a folder of the repository are templates that person never
+    receives. Embedded here rather than in App because this is the project that knows what a pack
+    is, and because it lets the library be tested without a window.
+
+    A wildcard and not a list, so adding a template is one file and no edit here. LogicalName is set
+    explicitly because these live outside this project's folder, where the name MSBuild derives is
+    neither stable nor readable; TemplateLibrary looks for exactly this prefix, and a test asserts
+    every .deckpack in the folder made it in.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="..\..\plantillas\*.deckpack" LogicalName="Templates/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>

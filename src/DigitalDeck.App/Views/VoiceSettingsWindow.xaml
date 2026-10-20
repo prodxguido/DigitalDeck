@@ -1,0 +1,106 @@
+<Window x:Class="DigitalDeck.App.Views.VoiceSettingsWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        WindowStyle="None"
+        ResizeMode="NoResize"
+        SizeToContent="Height"
+        Width="470"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Background="Transparent"
+        AllowsTransparency="True"
+        FontFamily="{StaticResource UiFont}">
+
+    <Window.Resources>
+        <Style x:Key="FieldLabel" TargetType="TextBlock">
+            <Setter Property="Foreground" Value="{StaticResource TextFaintBrush}" />
+            <Setter Property="FontSize" Value="10.5" />
+            <Setter Property="Margin" Value="0,0,0,5" />
+        </Style>
+    </Window.Resources>
+
+    <Border Background="{StaticResource SurfaceBrush}"
+            BorderBrush="{StaticResource BorderBrush}"
+            BorderThickness="1"
+            CornerRadius="10">
+        <StackPanel Margin="22,18,22,18">
+            <TextBlock Text="Asistente de voz"
+                       Foreground="{StaticResource TextBrush}"
+                       FontSize="14.5" FontWeight="SemiBold"
+                       MouseLeftButtonDown="Header_MouseLeftButtonDown" />
+
+            <TextBlock Text="Apretás el atajo, decís el nombre de un botón, y se aprieta. El micrófono se abre sólo mientras escucha y todo el reconocimiento pasa en esta máquina."
+                       Foreground="{StaticResource TextDimBrush}"
+                       FontSize="12" TextWrapping="Wrap" Margin="0,5,0,0" />
+
+            <!-- The switch, and whatever is standing in its way. -->
+            <Border Margin="0,16,0,0" Padding="13,11" CornerRadius="7"
+                    Background="{StaticResource BackgroundBrush}">
+                <StackPanel>
+                    <CheckBox x:Name="EnabledBox"
+                              Content="Activar el asistente de voz"
+                              Foreground="{StaticResource TextBrush}"
+                              FontSize="12.5"
+                              Checked="Enabled_Changed"
+                              Unchecked="Enabled_Changed" />
+
+                    <TextBlock x:Name="StateDetail" Margin="0,8,0,0"
+                               Foreground="{StaticResource TextDimBrush}"
+                               FontSize="11.5" TextWrapping="Wrap" />
+
+                    <Button x:Name="InstallModelButton" Content="Instalar el asistente de voz"
+                            Style="{StaticResource PrimaryButton}" HorizontalAlignment="Left"
+                            Margin="0,10,0,0" Visibility="Collapsed"
+                            Click="InstallModel_Click" />
+                </StackPanel>
+            </Border>
+
+            <!-- Microphone -->
+            <TextBlock Text="MICRÓFONO" Style="{StaticResource FieldLabel}" Margin="0,18,0,5" />
+
+            <ComboBox x:Name="DeviceBox"
+                      FontSize="12"
+                      DisplayMemberPath="Name"
+                      SelectionChanged="Device_Changed" />
+
+            <TextBlock x:Name="DeviceHint" Margin="0,6,0,0"
+                       Foreground="{StaticResource TextFaintBrush}"
+                       FontSize="11" TextWrapping="Wrap"
+                       Text="Si tenés una placa con ASIO, esto no le compite: DigitalDeck escucha por WASAPI, que es un camino aparte." />
+
+            <!-- Level meter, so the right device can be picked by looking rather than guessing. -->
+            <Grid Margin="0,10,0,0">
+                <Border Height="6" CornerRadius="3" Background="{StaticResource BackgroundBrush}" />
+                <Border x:Name="LevelBar" Height="6" CornerRadius="3" Width="0"
+                        HorizontalAlignment="Left"
+                        Background="{StaticResource AccentBrush}" />
+            </Grid>
+
+            <TextBlock x:Name="LevelHint" Margin="0,6,0,0"
+                       Foreground="{StaticResource TextFaintBrush}"
+                       FontSize="11"
+                       Text="Hablá para probarlo." />
+
+            <!-- Hotkey -->
+            <TextBlock Text="ATAJO" Style="{StaticResource FieldLabel}" Margin="0,18,0,5" />
+
+            <TextBox x:Name="HotkeyBox"
+                     FontSize="12"
+                     Padding="8,6"
+                     IsReadOnly="True"
+                     Background="{StaticResource BackgroundBrush}"
+                     Foreground="{StaticResource TextBrush}"
+                     BorderBrush="{StaticResource BorderBrush}"
+                     PreviewKeyDown="Hotkey_PreviewKeyDown" />
+
+            <TextBlock x:Name="HotkeyHint" Margin="0,6,0,0"
+                       Foreground="{StaticResource TextFaintBrush}"
+                       FontSize="11" TextWrapping="Wrap"
+                       Text="Hacé clic acá y apretá la combinación. Se la queda para todo el sistema, así que elegí una que Live no use." />
+
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,20,0,0">
+                <Button Content="Listo" Style="{StaticResource PrimaryButton}" Click="Close_Click" />
+            </StackPanel>
+        </StackPanel>
+    </Border>
+</Window>

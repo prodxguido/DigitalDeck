@@ -1,0 +1,1020 @@
+<Window x:Class="DigitalDeck.App.Views.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:local="clr-namespace:DigitalDeck.App"
+        xmlns:controls="clr-namespace:DigitalDeck.App.Controls"
+        xmlns:vm="clr-namespace:DigitalDeck.ViewModels;assembly=DigitalDeck.ViewModels"
+        Title="DigitalDeck"
+        Height="680" Width="1120"
+        MinHeight="360" MinWidth="640"
+        WindowStyle="None"
+        ResizeMode="CanResize"
+        Background="{StaticResource BackgroundBrush}"
+        FontFamily="{StaticResource UiFont}"
+        UseLayoutRounding="True"
+        TextOptions.TextFormattingMode="Display">
+
+    <Window.Resources>
+        <!-- Declarados arriba de todo: StaticResource se resuelve por orden lexico, y las
+             plantillas que los usan estan mas abajo en este mismo diccionario. -->
+        <local:HexToBrushConverter x:Key="TileAccent" />
+        <local:HexToBrushConverter x:Key="TileWash" Alpha="31" />
+        <local:HexToBrushConverter x:Key="TileGlow" Alpha="92" />
+        <local:IconGeometryConverter x:Key="IconGeometry" />
+        <local:IconImageConverter x:Key="IconImage" />
+
+        <local:NullToVisibilityConverter x:Key="NotNullToVisible" />
+        <local:NullToVisibilityConverter x:Key="NullToVisible" Invert="True" />
+        <local:BoolToBrushConverter x:Key="StatusBrush"
+                                    TrueBrush="{StaticResource DangerBrush}"
+                                    FalseBrush="{StaticResource TextFaintBrush}" />
+        <local:SelectionBrushConverter x:Key="PageSelectionBrush"
+                                       SelectedBrush="{StaticResource SurfaceRaisedBrush}"
+                                       UnselectedBrush="Transparent" />
+        <local:GridSizeSelectionConverter x:Key="GridSizeBrush"
+                                          SelectedBrush="{StaticResource SurfaceRaisedBrush}"
+                                          UnselectedBrush="Transparent" />
+        <local:AbletonStateBrushConverter x:Key="AbletonBrush"
+                                          Connected="{StaticResource AccentBrush}"
+                                          Searching="{StaticResource TextFaintBrush}"
+                                          Broken="{StaticResource DangerBrush}" />
+        <BooleanToVisibilityConverter x:Key="BoolToVisible" />
+        <local:EmptyStringToVisibilityConverter x:Key="EmptyToVisible" />
+
+        <ContextMenu x:Key="ViewMenu" x:Shared="False">
+            <MenuItem Header="VISTA" Style="{StaticResource MenuHeader}"/>
+            <MenuItem Header="Panel · pantalla táctil" Tag="panel" IsCheckable="True" Click="SelectView_Click"/>
+            <MenuItem Header="Barra arriba" Tag="top" IsCheckable="True" Click="SelectView_Click"/>
+            <MenuItem Header="Barra abajo" Tag="bottom" IsCheckable="True" Click="SelectView_Click"/>
+            <Separator/>
+            <MenuItem Header="Una hilera" Tag="1" IsCheckable="True" Click="ViewRows_Click"/>
+            <MenuItem Header="Dos hileras" Tag="2" IsCheckable="True" Click="ViewRows_Click"/>
+            <Separator/>
+            <MenuItem Header="Abajo · encima de Windows" Tag="above" IsCheckable="True" Click="DockTaskbarMode_Click"/>
+            <MenuItem Header="Abajo · sobre Windows" Tag="overlay" IsCheckable="True" Click="DockTaskbarMode_Click"/>
+        </ContextMenu>
+
+        <Style x:Key="DockKey" TargetType="Button">
+            <Setter Property="Foreground" Value="{StaticResource TextBrush}"/>
+            <Setter Property="Cursor" Value="Hand"/>
+            <Setter Property="FocusVisualStyle" Value="{StaticResource FocusRing}"/>
+            <Setter Property="Margin" Value="3,3"/>
+            <Setter Property="Width" Value="52"/>
+            <Setter Property="Height" Value="46"/>
+            <Setter Property="Padding" Value="4"/>
+            <Setter Property="HorizontalContentAlignment" Value="Center"/>
+            <Setter Property="Background" Value="{Binding ColorHex, Converter={StaticResource TileWash}}"/>
+            <Setter Property="BorderBrush" Value="{StaticResource EdgeBrush}"/>
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="Button">
+                        <Grid x:Name="KeyRoot" RenderTransformOrigin=".5,.5">
+                            <Grid.RenderTransform><ScaleTransform/></Grid.RenderTransform>
+                            <Border CornerRadius="7" Background="#202523" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="1">
+                                <Border Background="{TemplateBinding Background}" CornerRadius="6">
+                                    <Grid>
+                                        <Rectangle Height="2" VerticalAlignment="Top" Margin="9,0"
+                                                   Fill="{Binding ColorHex, Converter={StaticResource TileAccent}}" Opacity=".65"/>
+                                        <ContentPresenter Margin="{TemplateBinding Padding}" VerticalAlignment="Center"/>
+                                    </Grid>
+                                </Border>
+                            </Border>
+                            <Border x:Name="KeyHover" Background="White" Opacity="0" CornerRadius="7" IsHitTestVisible="False"/>
+                        </Grid>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="KeyHover" Property="Opacity" Value=".07"/>
+                                <Setter Property="BorderBrush" Value="{Binding ColorHex, Converter={StaticResource TileAccent}}"/>
+                            </Trigger>
+                            <Trigger Property="IsPressed" Value="True">
+                                <Setter TargetName="KeyHover" Property="Opacity" Value=".14"/>
+                            </Trigger>
+                            <DataTrigger Binding="{Binding IsLit}" Value="True">
+                                <Setter Property="Background" Value="{Binding ColorHex, Converter={StaticResource TileGlow}}"/>
+                                <Setter Property="BorderBrush" Value="{Binding ColorHex, Converter={StaticResource TileAccent}}"/>
+                            </DataTrigger>
+                            <Trigger Property="IsEnabled" Value="False"><Setter Property="Opacity" Value=".4"/></Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <Style x:Key="EditToggleButton" TargetType="Button" BasedOn="{StaticResource ChromeButton}">
+            <Style.Triggers>
+                <DataTrigger Binding="{Binding IsEditMode}" Value="True">
+                    <Setter Property="Background" Value="{StaticResource AccentBrush}" />
+                    <Setter Property="Foreground" Value="#0B1013" />
+                </DataTrigger>
+            </Style.Triggers>
+        </Style>
+
+        <!-- A tile: colour wash, icon, label. Deliberately quiet so the icon carries recognition.
+             While «Eliminar varios» is running a ticked tile gets a red outline and a corner mark,
+             so the batch about to go is readable at a glance before the confirmation appears. -->
+        <DataTemplate x:Key="TileTemplate" DataType="{x:Type vm:DeckItemViewModel}">
+          <!--
+              The tile rises a little under the pointer and picks up a shadow, so the thing you are
+              about to hit is unmistakably the thing you are about to hit. The lift is a render
+              transform, not a size change: layout stays exactly where DeckGridPanel put it, and
+              the grid does not reflow sixty tiles because the mouse moved. The shadow is set by a
+              trigger rather than left on, so at most one tile is ever paying for a blur.
+          -->
+          <Grid RenderTransformOrigin="0.5,0.5">
+            <Grid.RenderTransform>
+                <ScaleTransform ScaleX="1" ScaleY="1" />
+            </Grid.RenderTransform>
+            <Grid.Style>
+                <Style TargetType="Grid">
+                    <Style.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter Property="Effect" Value="{StaticResource LiftShadow}" />
+                            <Setter Property="Panel.ZIndex" Value="1" />
+                            <Trigger.EnterActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)"
+                                                         To="1.035" Duration="{StaticResource EnterDuration}"
+                                                         EasingFunction="{StaticResource EaseOut}" />
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)"
+                                                         To="1.035" Duration="{StaticResource EnterDuration}"
+                                                         EasingFunction="{StaticResource EaseOut}" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.EnterActions>
+                            <Trigger.ExitActions>
+                                <BeginStoryboard>
+                                    <Storyboard>
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleX)"
+                                                         To="1" Duration="{StaticResource ExitDuration}"
+                                                         EasingFunction="{StaticResource EaseOut}" />
+                                        <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(ScaleTransform.ScaleY)"
+                                                         To="1" Duration="{StaticResource ExitDuration}"
+                                                         EasingFunction="{StaticResource EaseOut}" />
+                                    </Storyboard>
+                                </BeginStoryboard>
+                            </Trigger.ExitActions>
+                        </Trigger>
+                    </Style.Triggers>
+                </Style>
+            </Grid.Style>
+
+            <!-- The stacked lid that says "this is a container". It is drawn behind the tile and peeks out
+                 the top, because the icon is the first thing a user replaces and cannot be relied on to
+                 carry the difference between firing something and going somewhere. -->
+            <Border VerticalAlignment="Top" Margin="9,-5,9,0" Height="10"
+                    CornerRadius="6,6,0,0"
+                    Background="{StaticResource SurfaceRaisedBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1,1,1,0"
+                    Visibility="{Binding IsFolder, Converter={StaticResource BoolToVisible}}" />
+
+            <!-- Background is a Setter and not an attribute on purpose: a local value beats
+                 anything a trigger sets, so a tile painted here could never light up. -->
+            <Border CornerRadius="14"
+                    ToolTip="{Binding ToolTipText}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Background" Value="{Binding ColorHex, Converter={StaticResource TileWash}}" />
+                        <Setter Property="BorderBrush" Value="{StaticResource BorderBrush}" />
+                        <Setter Property="BorderThickness" Value="1" />
+                        <Style.Triggers>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter Property="BorderBrush" Value="{StaticResource EdgeBrush}" />
+                            </Trigger>
+
+                            <!-- Live is in the state this button puts it in: playing, click on,
+                                 record armed. Declared after the hover so a lit tile under the
+                                 pointer stays lit, and before the selection so «Eliminar varios»
+                                 still wins — being about to delete something matters more than
+                                 what the transport is doing. -->
+                            <DataTrigger Binding="{Binding IsLit}" Value="True">
+                                <Setter Property="Background" Value="{Binding ColorHex, Converter={StaticResource TileGlow}}" />
+                                <Setter Property="BorderBrush" Value="{Binding ColorHex, Converter={StaticResource TileAccent}}" />
+                                <Setter Property="BorderThickness" Value="2" />
+                            </DataTrigger>
+
+                            <DataTrigger Binding="{Binding IsSelected}" Value="True">
+                                <Setter Property="BorderBrush" Value="{StaticResource DangerBrush}" />
+                                <Setter Property="BorderThickness" Value="2" />
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <Grid Margin="10,10,10,8">
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="*" />
+                        <RowDefinition Height="Auto" />
+                    </Grid.RowDefinitions>
+                    <Border Grid.RowSpan="2" CornerRadius="9" Margin="-8,-8,-8,-6" IsHitTestVisible="False">
+                        <Border.Background>
+                            <LinearGradientBrush StartPoint="0,0" EndPoint="0,1">
+                                <GradientStop Color="#12FFFFFF" Offset="0"/>
+                                <GradientStop Color="#00FFFFFF" Offset=".35"/>
+                                <GradientStop Color="#28000000" Offset="1"/>
+                            </LinearGradientBrush>
+                        </Border.Background>
+                    </Border>
+                    <Border Height="3" Width="28" CornerRadius="1.5" VerticalAlignment="Top" HorizontalAlignment="Left"
+                            Background="{Binding ColorHex, Converter={StaticResource TileAccent}}" Opacity=".8"/>
+
+                    <!-- Capped rather than free to fill: an icon stretched across the whole key
+                         reads as a coloured slab, not a symbol. It still shrinks with a small tile,
+                         it just stops growing once it is comfortably a glyph. The TextBlock is for
+                         decks saved before the set existed, which store a font character. -->
+                    <Viewbox Grid.Row="0" Stretch="Uniform" Margin="9"
+                             MaxWidth="48" MaxHeight="48"
+                             HorizontalAlignment="Center" VerticalAlignment="Center"
+                             Visibility="{Binding IconPath, Converter={StaticResource NullToVisible}}">
+                        <Grid>
+                            <Path Style="{StaticResource LineIcon}"
+                                  Data="{Binding DrawnIconName, Converter={StaticResource IconGeometry}}"
+                                  Stroke="{Binding ColorHex, Converter={StaticResource TileAccent}}"
+                                  Visibility="{Binding DrawnIconName, Converter={StaticResource NotNullToVisible}}" />
+                            <TextBlock Text="{Binding Glyph}"
+                                       FontFamily="{StaticResource GlyphFont}"
+                                       Foreground="{Binding ColorHex, Converter={StaticResource TileAccent}}"
+                                       Visibility="{Binding DrawnIconName, Converter={StaticResource NullToVisible}}" />
+                        </Grid>
+                    </Viewbox>
+
+                    <Image Grid.Row="0" Source="{Binding IconPath, Converter={StaticResource IconImage}}" Stretch="Uniform" Margin="4"
+                           RenderOptions.BitmapScalingMode="HighQuality"
+                           Visibility="{Binding IconPath, Converter={StaticResource NotNullToVisible}}" />
+
+                    <!-- A scrim, only under a picture. A user's own logo can be any colour, and a
+                         pale one leaves the label unreadable — a bug that shows up the first time
+                         somebody uses their own image and never during development. -->
+                    <Border Grid.Row="1" CornerRadius="5" Padding="4,1" Margin="-2,0"
+                            Background="#8C0B1013"
+                            Visibility="{Binding IconPath, Converter={StaticResource NotNullToVisible}}" />
+
+                    <TextBlock Grid.Row="1"
+                               Text="{Binding Label}"
+                               Foreground="{StaticResource TextBrush}"
+                               FontSize="12.5"
+                               TextAlignment="Center"
+                               TextTrimming="CharacterEllipsis"
+                               MaxHeight="32"
+                               TextWrapping="Wrap" />
+                </Grid>
+            </Border>
+
+            <!-- A white wash rather than a lighter grey, so one hover colour works over every
+                 tile tint the user might have picked. It reads the pointer off the tile as a
+                 whole, which is why it can afford to be hit-test invisible and sit on top. -->
+            <Border CornerRadius="14" IsHitTestVisible="False"
+                    Background="{StaticResource HoverBrush}">
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="Opacity" Value="0" />
+                        <Style.Triggers>
+                            <DataTrigger Value="True"
+                                         Binding="{Binding IsMouseOver, RelativeSource={RelativeSource AncestorType=Grid}}">
+                                <DataTrigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             To="1" Duration="{StaticResource MicroDuration}" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.EnterActions>
+                                <DataTrigger.ExitActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             To="0" Duration="{StaticResource ExitDuration}" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </DataTrigger.ExitActions>
+                            </DataTrigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+            </Border>
+
+            <Border Width="20" Height="20" CornerRadius="14" Margin="0,5,5,0"
+                    HorizontalAlignment="Right" VerticalAlignment="Top"
+                    Background="{StaticResource DangerBrush}"
+                    Visibility="{Binding IsSelected, Converter={StaticResource BoolToVisible}}">
+                <TextBlock Text="&#xE73E;" FontFamily="{StaticResource GlyphFont}" FontSize="10"
+                           Foreground="#0B1013"
+                           HorizontalAlignment="Center" VerticalAlignment="Center" />
+            </Border>
+
+            <Border HorizontalAlignment="Right" VerticalAlignment="Bottom"
+                    Margin="0,0,8,8"
+                    CornerRadius="999" Padding="7,1"
+                    Background="{StaticResource SurfaceRaisedBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                    Visibility="{Binding IsFolder, Converter={StaticResource BoolToVisible}}">
+                <TextBlock Text="{Binding ChildCount}"
+                           FontSize="11"
+                           Foreground="{StaticResource TextFaintBrush}" />
+            </Border>
+          </Grid>
+        </DataTemplate>
+
+        <!-- A result row: the tile's own icon and colour, its name, and the path it was found at.
+             The path is what makes two buttons called the same thing tellable apart, and it is how
+             the user learns where the thing they forgot actually lives. -->
+        <DataTemplate x:Key="SearchResultTemplate" DataType="{x:Type vm:DeckSearchResultViewModel}">
+            <Button Style="{StaticResource ChromeButton}"
+                    HorizontalContentAlignment="Stretch"
+                    Padding="10,8" Margin="0,0,0,4"
+                    Command="{Binding DataContext.OpenSearchResultCommand,
+                              RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                    CommandParameter="{Binding}">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Width="34" Height="34" CornerRadius="8"
+                            Background="{Binding Tile.ColorHex, Converter={StaticResource TileWash}}">
+                        <Grid Margin="7">
+                            <Viewbox Stretch="Uniform"
+                                     Visibility="{Binding Tile.IconPath, Converter={StaticResource NullToVisible}}">
+                                <Grid>
+                                    <Path Style="{StaticResource LineIcon}"
+                                          Data="{Binding Tile.DrawnIconName, Converter={StaticResource IconGeometry}}"
+                                          Stroke="{Binding Tile.ColorHex, Converter={StaticResource TileAccent}}"
+                                          Visibility="{Binding Tile.DrawnIconName, Converter={StaticResource NotNullToVisible}}" />
+                                    <TextBlock Text="{Binding Tile.Glyph}"
+                                               FontFamily="{StaticResource GlyphFont}"
+                                               Foreground="{Binding Tile.ColorHex, Converter={StaticResource TileAccent}}"
+                                               Visibility="{Binding Tile.DrawnIconName, Converter={StaticResource NullToVisible}}" />
+                                </Grid>
+                            </Viewbox>
+                            <Image Source="{Binding Tile.IconPath, Converter={StaticResource IconImage}}" Stretch="Uniform"
+                                   RenderOptions.BitmapScalingMode="HighQuality"
+                                   Visibility="{Binding Tile.IconPath, Converter={StaticResource NotNullToVisible}}" />
+                        </Grid>
+                    </Border>
+
+                    <StackPanel Grid.Column="1" Margin="12,0,10,0" VerticalAlignment="Center">
+                        <TextBlock Text="{Binding Label}" FontSize="14.5"
+                                   TextTrimming="CharacterEllipsis"
+                                   Foreground="{StaticResource TextBrush}" />
+                        <TextBlock Text="{Binding Location}" FontSize="11" Margin="0,2,0,0"
+                                   TextTrimming="CharacterEllipsis"
+                                   Foreground="{StaticResource TextFaintBrush}" />
+                    </StackPanel>
+
+                    <TextBlock Grid.Column="2" Text="{Binding Detail}" FontSize="11"
+                               VerticalAlignment="Center" MaxWidth="260"
+                               TextTrimming="CharacterEllipsis"
+                               Foreground="{StaticResource TextFaintBrush}" />
+                </Grid>
+            </Button>
+        </DataTemplate>
+
+        <ContextMenu x:Key="TileMenu">
+            <MenuItem Header="Editar" Click="MenuEdit_Click" />
+            <MenuItem Header="Duplicar" Click="MenuDuplicate_Click" />
+            <Separator />
+            <MenuItem Header="Tamaño 1 × 1" Click="MenuResize_Click" Tag="1,1" />
+            <MenuItem Header="Tamaño 2 × 1" Click="MenuResize_Click" Tag="2,1" />
+            <MenuItem Header="Tamaño 1 × 2" Click="MenuResize_Click" Tag="1,2" />
+            <MenuItem Header="Tamaño 2 × 2" Click="MenuResize_Click" Tag="2,2" />
+            <MenuItem Header="Tamaño 3 × 2" Click="MenuResize_Click" Tag="3,2" />
+            <Separator />
+            <MenuItem Header="Exportar grupo" Click="MenuExportFolder_Click" Tag="export-folder" />
+            <MenuItem Header="Eliminar" Click="MenuDelete_Click" />
+        </ContextMenu>
+
+        <ContextMenu x:Key="EmptyCellMenu">
+            <MenuItem Header="Agregar botón" Click="MenuAddButton_Click" />
+            <MenuItem Header="Agregar grupo" Click="MenuAddFolder_Click" />
+            <MenuItem Header="Agregar carpeta de favoritos" Click="MenuAddFrequentFolder_Click" />
+            <Separator />
+            <MenuItem Header="Importar paquetes acá" Command="{Binding ImportGroupCommand}" />
+        </ContextMenu>
+    </Window.Resources>
+
+    <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="Auto" />
+                <RowDefinition Height="*" />
+                <RowDefinition Height="Auto" />
+            </Grid.RowDefinitions>
+
+            <Border x:Name="StudioHeader" Grid.Row="0" Background="{StaticResource ChromeBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,0,0,1"
+                    MouseLeftButtonDown="TopBar_MouseLeftButtonDown">
+                <Grid Margin="20,12,20,10">
+                    <Grid.RowDefinitions><RowDefinition Height="38"/><RowDefinition Height="58"/></Grid.RowDefinitions>
+                    <DockPanel Grid.Row="0" LastChildFill="False">
+                        <StackPanel DockPanel.Dock="Left" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Border Width="28" Height="28" CornerRadius="8" Background="{StaticResource AccentBrush}">
+                                <UniformGrid Rows="2" Columns="2" Margin="7">
+                                    <Rectangle Fill="#151718" Margin="1"/><Rectangle Fill="#151718" Margin="1"/>
+                                    <Rectangle Fill="#151718" Margin="1"/><Rectangle Fill="#151718" Margin="1" Opacity=".4"/>
+                                </UniformGrid>
+                            </Border>
+                            <TextBlock Text="digitaldeck" FontFamily="{StaticResource DisplayFont}" FontWeight="Bold"
+                                       FontSize="19" Foreground="{StaticResource TextBrush}" VerticalAlignment="Center" Margin="10,0,20,0"/>
+                            <Button x:Name="ProfileButton" Style="{StaticResource ChromeButton}"
+                                Click="ProfileButton_Click">
+                            <StackPanel Orientation="Horizontal">
+                                <TextBlock Text="&#xE77B;" FontFamily="{StaticResource GlyphFont}"
+                                           FontSize="12" VerticalAlignment="Center"
+                                           Foreground="{StaticResource TextFaintBrush}" />
+                                <TextBlock Text="{Binding SelectedProfile.Name, FallbackValue='Sin perfil'}"
+                                           Foreground="{StaticResource TextBrush}" FontSize="12.5"
+                                           Margin="7,0,0,0" />
+                                <TextBlock Text="&#xE70D;" FontFamily="{StaticResource GlyphFont}"
+                                           FontSize="9" Margin="8,3,0,0"
+                                           Foreground="{StaticResource TextFaintBrush}" />
+                            </StackPanel>
+                            <Button.ContextMenu>
+                                <ContextMenu ItemsSource="{Binding Profiles}">
+                                    <ContextMenu.ItemContainerStyle>
+                                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                                            <Setter Property="Header" Value="{Binding Name}" />
+                                            <Setter Property="Command"
+                                                    Value="{Binding PlacementTarget.DataContext.SelectProfileCommand,
+                                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                            <Setter Property="CommandParameter" Value="{Binding}" />
+                                        </Style>
+                                    </ContextMenu.ItemContainerStyle>
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                        </Button>
+                        </StackPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Style="{StaticResource ChromeButton}" Content="Vista ▾" Click="ViewMenu_Click"
+                                    ContextMenu="{StaticResource ViewMenu}"
+                                    ToolTip="Cambiar vista: panel, barra arriba o barra abajo"/>
+                            <Button Style="{StaticResource ChromeButton}" Content="▣" Click="Fullscreen_Click" ToolTip="Panel táctil a pantalla completa · F11"/>
+                            <Button x:Name="MenuButton" Style="{StaticResource ChromeButton}"
+                                Click="MenuButton_Click" Content="&#xE712;"
+                                FontFamily="{StaticResource GlyphFont}" FontSize="13" Margin="2,0,0,0">
+                            <Button.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="DECK" Style="{StaticResource MenuHeader}" />
+                                    <MenuItem Header="Nueva página" Command="{Binding NewPageCommand}" />
+                                    <MenuItem Header="Configurar página" Command="{Binding EditPageCommand}" />
+                                    <MenuItem Header="Eliminar página" Command="{Binding DeletePageCommand}" />
+                                    <Separator />
+                                    <MenuItem Header="Nuevo perfil" Command="{Binding NewProfileCommand}" />
+                                    <MenuItem Header="Renombrar perfil" Command="{Binding RenameProfileCommand}" />
+                                    <MenuItem Header="Duplicar perfil" Command="{Binding DuplicateProfileCommand}" />
+                                    <MenuItem Header="Eliminar perfil" Command="{Binding DeleteProfileCommand}" />
+
+                                    <MenuItem Header="HERRAMIENTAS" Style="{StaticResource MenuHeader}" />
+                                    <MenuItem Header="Mixer de Ableton" Command="{Binding ShowMixerCommand}"
+                                              ToolTip="Un fader por canal del set abierto, del tamaño de un dedo." />
+                                    <MenuItem Header="Instalar el Remote Script…" Command="{Binding ShowRemoteScriptCommand}"
+                                              ToolTip="El puente con Ableton Live. Se instala una sola vez." />
+                                    <MenuItem Header="Asistente de voz" Command="{Binding ShowVoiceSettingsCommand}" />
+                                    <MenuItem Header="Nombres repetidos" Command="{Binding ShowDuplicateNamesCommand}" />
+
+                                    <MenuItem Header="LLEVAR Y TRAER" Style="{StaticResource MenuHeader}" />
+                                    <MenuItem Header="Exportar perfil" Command="{Binding ExportProfileCommand}" />
+                                    <MenuItem Header="Importar paquete como perfil" Command="{Binding ImportProfileCommand}" />
+                                    <MenuItem Header="Importar paquetes…" Command="{Binding ImportPacksCommand}"
+                                              ToolTip="Abre un .deckpack y te pregunta si lo querés como páginas nuevas o como un grupo en la página que estás usando." />
+                                    <MenuItem Header="Instalar plantillas…" Command="{Binding InstallTemplatesCommand}"
+                                              ToolTip="Las plantillas que vienen adentro de la app: plugins por marca, y las tareas de todos los días." />
+
+                                    <MenuItem Header="PREFERENCIAS" Style="{StaticResource MenuHeader}" />
+                                    <MenuItem Header="Abrir al prender la PC"
+                                              IsCheckable="True"
+                                              IsChecked="{Binding StartsWithWindows, Mode=TwoWay}"
+                                              ToolTip="Agrega o saca DigitalDeck de la lista de Inicio de Windows, la misma que ves en el Administrador de tareas." />
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                        </Button>
+                            <Button Style="{StaticResource ChromeButton}" Click="Minimise_Click" Content="−" ToolTip="Minimizar"/>
+                            <Button Style="{StaticResource ChromeButton}" Click="Close_Click" Content="×" ToolTip="Cerrar"/>
+                        </StackPanel>
+                    </DockPanel>
+                    <DockPanel Grid.Row="1" LastChildFill="False" Margin="0,14,0,0">
+                        <StackPanel DockPanel.Dock="Left">
+                            <TextBlock Text="TU ESTUDIO. A UN TOQUE." FontSize="10" FontWeight="SemiBold" Foreground="{StaticResource AccentBrush}"/>
+                            <TextBlock Text="{Binding SelectedPage.Name, FallbackValue='Sesión'}" FontFamily="{StaticResource DisplayFont}"
+                                       FontSize="24" FontWeight="SemiBold" Foreground="{StaticResource TextBrush}" Margin="0,2,0,0"/>
+                        </StackPanel>
+                        <StackPanel DockPanel.Dock="Right" Orientation="Horizontal" VerticalAlignment="Center">
+                            <Button Style="{StaticResource ChromeButton}" Command="{Binding ShowAbletonStatusCommand}" ToolTip="{Binding AbletonDetail}" Margin="0,0,12,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <Ellipse Width="6" Height="6" Fill="{Binding AbletonState, Converter={StaticResource AbletonBrush}}" Margin="0,0,8,0"/>
+                                    <TextBlock Text="{Binding AbletonLabel}"/>
+                                </StackPanel>
+                            </Button>
+                            <Button Style="{StaticResource ChromeButton}" Content="⌕" Command="{Binding ToggleSearchCommand}" ToolTip="Buscar · Ctrl+F" FontSize="22"/>
+                            <Button Style="{StaticResource ChromeButton}" Content="Voz" Command="{Binding ShowVoiceSettingsCommand}" ToolTip="Voz local · configurar micrófono y atajo"/>
+                            <Button Style="{StaticResource EditToggleButton}" Content="Editar deck" Command="{Binding ToggleEditModeCommand}" Margin="8,0,0,0" Padding="14,9"/>
+                            <Button Style="{StaticResource ChromeButton}" Content="+" Command="{Binding AddButtonCommand}" FontSize="22" ToolTip="Agregar botón"/>
+                        </StackPanel>
+                    </DockPanel>
+                </Grid>
+            </Border>
+            <!-- ===== Breadcrumb ===== -->
+            <Border x:Name="BreadcrumbBar" Grid.Row="1" Height="44" Background="{StaticResource BackgroundBrush}">
+                <Grid Margin="16,0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Style="{StaticResource ChromeButton}" Command="{Binding GoBackCommand}"
+                                Content="&#xE72B;" FontFamily="{StaticResource GlyphFont}" FontSize="12"
+                                Padding="6,3" Margin="0,0,6,0"
+                                Visibility="{Binding CanGoBack, Converter={StaticResource BoolToVisible}}" />
+
+                        <!-- The route starts at the profile. Profile, page and group are one axis — containers inside
+                             containers — and reading them as one line is what makes that legible. -->
+                        <Button Style="{StaticResource ChromeButton}" Padding="6,3"
+                                Content="{Binding SelectedProfile.Name, FallbackValue='Sin perfil'}"
+                                Click="RouteProfile_Click"
+                                ToolTip="Cambiar de perfil">
+                            <Button.ContextMenu>
+                                <ContextMenu ItemsSource="{Binding Profiles}">
+                                    <ContextMenu.ItemContainerStyle>
+                                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                                            <Setter Property="Header" Value="{Binding Name}" />
+                                            <Setter Property="Command"
+                                                    Value="{Binding PlacementTarget.DataContext.SelectProfileCommand,
+                                                            RelativeSource={RelativeSource AncestorType=ContextMenu}}" />
+                                            <Setter Property="CommandParameter" Value="{Binding}" />
+                                        </Style>
+                                    </ContextMenu.ItemContainerStyle>
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                        </Button>
+                        <TextBlock Text="/" Margin="3,0" VerticalAlignment="Center"
+                                   Foreground="{StaticResource TextFaintBrush}" FontSize="11" />
+
+                        <ItemsControl ItemsSource="{Binding Breadcrumbs}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <StackPanel Orientation="Horizontal">
+                                        <Button Style="{StaticResource ChromeButton}" Padding="6,3"
+                                                Content="{Binding Label}"
+                                                Command="{Binding DataContext.NavigateToCommand,
+                                                          RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                CommandParameter="{Binding}" />
+                                        <TextBlock Text="/" Margin="3,0" VerticalAlignment="Center"
+                                                   Foreground="{StaticResource TextFaintBrush}" FontSize="11" />
+                                    </StackPanel>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </StackPanel>
+
+                    <!-- ===== Tamaño de la grilla =====
+                         A la vista en la página y en cualquier grupo dentro de ella, porque la
+                         grilla es de la página entera y no de un grupo en particular: cambiarla
+                         acá cambia cómo se ven todos los grupos que vivan adentro. Sólo en modo
+                         edición, como el resto de lo que cambia la estructura del deck. -->
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVisible}}">
+                        <TextBlock Text="GRILLA" FontSize="11" Margin="0,0,8,0" VerticalAlignment="Center"
+                                   Foreground="{StaticResource TextFaintBrush}" />
+
+                        <ItemsControl ItemsSource="{Binding GridSizePresets}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource ChromeButton}" Padding="8,3" Margin="0,0,4,0"
+                                            Content="{Binding Label}"
+                                            CommandParameter="{Binding Parameter}"
+                                            Command="{Binding DataContext.SetGridSizeCommand,
+                                                      RelativeSource={RelativeSource AncestorType=ItemsControl}}">
+                                        <Button.Background>
+                                            <MultiBinding Converter="{StaticResource GridSizeBrush}">
+                                                <Binding Path="DataContext.Columns"
+                                                         RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                                <Binding Path="DataContext.Rows"
+                                                         RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                                <Binding Path="Parameter" />
+                                            </MultiBinding>
+                                        </Button.Background>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Button Style="{StaticResource ChromeButton}" Padding="6,3" Margin="4,0,0,0"
+                                Command="{Binding EditPageCommand}"
+                                Content="&#xE712;" FontFamily="{StaticResource GlyphFont}" FontSize="10.5"
+                                ToolTip="Tamaño y nombre personalizados" />
+                    </StackPanel>
+                </Grid>
+            </Border>
+
+            <!-- ===== Deck grid ===== -->
+            <Grid x:Name="DeckContent" Grid.Row="2">
+            <ItemsControl x:Name="TileHost"
+                          ItemsSource="{Binding Items}"
+                          ItemTemplate="{StaticResource TileTemplate}"
+                          Background="Transparent"
+                          Margin="16,12,16,16"
+                          PreviewMouseLeftButtonDown="TileHost_PreviewMouseLeftButtonDown"
+                          PreviewMouseMove="TileHost_PreviewMouseMove"
+                          PreviewMouseLeftButtonUp="TileHost_PreviewMouseLeftButtonUp"
+                          PreviewMouseRightButtonDown="TileHost_PreviewMouseRightButtonDown">
+                <ItemsControl.ItemsPanel>
+                    <ItemsPanelTemplate>
+                        <controls:DeckGridPanel Columns="{Binding Columns}"
+                                                Rows="{Binding Rows}"
+                                                Gap="12"
+                                                Background="Transparent"
+                                                ShowCellGuides="{Binding IsEditMode}" />
+                    </ItemsPanelTemplate>
+                </ItemsControl.ItemsPanel>
+                <ItemsControl.ItemContainerStyle>
+                    <Style TargetType="ContentPresenter">
+                        <Setter Property="controls:DeckGridPanel.Col" Value="{Binding Col}" />
+                        <Setter Property="controls:DeckGridPanel.Row" Value="{Binding Row}" />
+                        <Setter Property="controls:DeckGridPanel.ColSpan" Value="{Binding Width}" />
+                        <Setter Property="controls:DeckGridPanel.RowSpan" Value="{Binding Height}" />
+                    </Style>
+                </ItemsControl.ItemContainerStyle>
+            </ItemsControl>
+
+            <!-- ===== Search =====
+                 Over the grid rather than beside it: it is a way in, not a second place to live,
+                 and it goes away the moment something is picked. -->
+            <Border Background="{StaticResource ScrimBrush}" Padding="18,10,18,14"
+                    Visibility="{Binding IsSearchOpen, Converter={StaticResource BoolToVisible}}"
+                    RenderTransformOrigin="0.5,0">
+                <Border.RenderTransform>
+                    <TranslateTransform Y="0" />
+                </Border.RenderTransform>
+                <!-- Search drops in over the grid instead of replacing it in one frame, so it is
+                     legible as a layer on top rather than as the deck having vanished. -->
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Style.Triggers>
+                            <Trigger Property="Visibility" Value="Visible">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             From="0" To="1"
+                                                             Duration="{StaticResource EnterDuration}" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                                             From="-10" To="0"
+                                                             Duration="{StaticResource EnterDuration}"
+                                                             EasingFunction="{StaticResource EaseOut}" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="Auto" />
+                        <RowDefinition Height="*" />
+                    </Grid.RowDefinitions>
+
+                    <Grid Grid.Row="0">
+                        <Grid.ColumnDefinitions>
+                            <ColumnDefinition Width="*" />
+                            <ColumnDefinition Width="Auto" />
+                        </Grid.ColumnDefinitions>
+
+                        <TextBox x:Name="SearchBox" Grid.Column="0"
+                                 Text="{Binding SearchQuery, UpdateSourceTrigger=PropertyChanged}"
+                                 IsVisibleChanged="SearchBox_IsVisibleChanged"
+                                 KeyDown="SearchBox_KeyDown" />
+
+                        <TextBlock Grid.Column="0" Text="Buscá un botón por su nombre…"
+                                   Margin="11,0,0,0" VerticalAlignment="Center"
+                                   IsHitTestVisible="False"
+                                   FontSize="14.5"
+                                   Foreground="{StaticResource TextFaintBrush}"
+                                   Visibility="{Binding Text, ElementName=SearchBox,
+                                               Converter={StaticResource EmptyToVisible}}" />
+
+                        <Button Grid.Column="1" Style="{StaticResource ChromeButton}"
+                                Margin="8,0,0,0" Padding="10,8"
+                                Command="{Binding CloseSearchCommand}"
+                                Content="&#xE8BB;" FontFamily="{StaticResource GlyphFont}" FontSize="11"
+                                ToolTip="Cerrar (Esc)" />
+                    </Grid>
+
+                    <TextBlock Grid.Row="1" Margin="2,16,0,0"
+                               Text="No hay nada con ese nombre en este perfil."
+                               FontSize="12.5"
+                               Foreground="{StaticResource TextFaintBrush}"
+                               Visibility="{Binding HasNoSearchResults, Converter={StaticResource BoolToVisible}}" />
+
+                    <ScrollViewer Grid.Row="1" Margin="0,10,0,0" VerticalScrollBarVisibility="Auto">
+                        <ItemsControl x:Name="SearchList" ItemsSource="{Binding SearchResults}"
+                                      ItemTemplate="{StaticResource SearchResultTemplate}" />
+                    </ScrollViewer>
+                </Grid>
+            </Border>
+
+            <!-- ===== Onboarding =====
+                 A card, not a modal: it explains the app while you can still see (and poke at) the
+                 thing it is explaining. Most steps have no "Siguiente" — they wait for the actual
+                 click they describe and move themselves along, so this plays out as something the
+                 user does rather than something they read. Those steps live near the top bar, where
+                 the thing being pointed at actually is; the two steps with nothing to point at sit
+                 in the bottom corner instead. Closing it for good is one checkbox away, and the «?»
+                 button up top brings it back whenever it's needed again. -->
+            <Border MaxWidth="320"
+                    HorizontalAlignment="Right"
+                    Background="{StaticResource SurfaceRaisedBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="1"
+                    CornerRadius="14" Padding="16,14"
+                    Effect="{StaticResource CardShadow}"
+                    Visibility="{Binding IsOnboardingOpen, Converter={StaticResource BoolToVisible}}"
+                    RenderTransformOrigin="0.5,0.5">
+                <Border.RenderTransform>
+                    <TranslateTransform Y="0" />
+                </Border.RenderTransform>
+                <Border.Style>
+                    <Style TargetType="Border">
+                        <Setter Property="VerticalAlignment" Value="Bottom" />
+                        <Setter Property="Margin" Value="0,0,20,20" />
+                        <Style.Triggers>
+                            <DataTrigger Binding="{Binding IsOnboardingAnchoredTop}" Value="True">
+                                <Setter Property="VerticalAlignment" Value="Top" />
+                                <Setter Property="Margin" Value="0,10,20,0" />
+                            </DataTrigger>
+                            <Trigger Property="Visibility" Value="Visible">
+                                <Trigger.EnterActions>
+                                    <BeginStoryboard>
+                                        <Storyboard>
+                                            <DoubleAnimation Storyboard.TargetProperty="Opacity"
+                                                             From="0" To="1"
+                                                             Duration="{StaticResource EnterDuration}" />
+                                            <DoubleAnimation Storyboard.TargetProperty="RenderTransform.(TranslateTransform.Y)"
+                                                             From="12" To="0"
+                                                             Duration="{StaticResource EnterDuration}"
+                                                             EasingFunction="{StaticResource EaseOut}" />
+                                        </Storyboard>
+                                    </BeginStoryboard>
+                                </Trigger.EnterActions>
+                            </Trigger>
+                        </Style.Triggers>
+                    </Style>
+                </Border.Style>
+                <StackPanel>
+                    <Grid>
+                        <TextBlock Text="{Binding CurrentOnboardingStep.Title}"
+                                   FontSize="14.5" FontWeight="SemiBold"
+                                   Foreground="{StaticResource TextBrush}"
+                                   TextWrapping="Wrap" Margin="0,0,24,0" />
+                        <Button HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Style="{StaticResource ChromeButton}" Padding="6,2"
+                                Command="{Binding CloseOnboardingCommand}"
+                                Content="&#xE8BB;" FontFamily="{StaticResource GlyphFont}" FontSize="9"
+                                ToolTip="Cerrar" />
+                    </Grid>
+
+                    <TextBlock Text="{Binding CurrentOnboardingStep.Body}"
+                               FontSize="12.5" Margin="0,8,0,0" TextWrapping="Wrap"
+                               Foreground="{StaticResource TextDimBrush}" />
+
+                    <!-- Waiting for the click itself, instead of a button that says the click happened. -->
+                    <TextBlock Text="Esperando tu clic…" Margin="0,8,0,0"
+                               FontSize="11" FontStyle="Italic"
+                               Foreground="{StaticResource TextFaintBrush}"
+                               Visibility="{Binding IsOnboardingWaitingForAction, Converter={StaticResource BoolToVisible}}" />
+
+                    <Grid Margin="0,14,0,0">
+                        <TextBlock Text="{Binding OnboardingProgressLabel}"
+                                   FontSize="11" VerticalAlignment="Center"
+                                   Foreground="{StaticResource TextFaintBrush}" />
+
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                            <Button Style="{StaticResource ChromeButton}" Content="Atrás" Padding="10,4"
+                                    Margin="0,0,6,0"
+                                    Command="{Binding PreviousOnboardingStepCommand}"
+                                    Visibility="{Binding CanGoPreviousOnboardingStep, Converter={StaticResource BoolToVisible}}" />
+
+                            <!-- Waiting steps offer only a way past themselves, not a way to skip the
+                                 rest of the tutorial — that stays on the × up top. -->
+                            <Button Style="{StaticResource ChromeButton}" Content="Saltar este paso" Padding="10,4"
+                                    Command="{Binding NextOnboardingStepCommand}"
+                                    Visibility="{Binding IsOnboardingWaitingForAction, Converter={StaticResource BoolToVisible}}" />
+                            <Button Style="{StaticResource EditToggleButton}" Padding="10,4"
+                                    Command="{Binding NextOnboardingStepCommand}"
+                                    Content="{Binding NextOnboardingLabel}"
+                                    Visibility="{Binding IsOnboardingManualAdvance, Converter={StaticResource BoolToVisible}}" />
+                        </StackPanel>
+                    </Grid>
+                </StackPanel>
+            </Border>
+
+            <!-- The emptiest screen in the app is also the best place to teach: nothing else is competing
+                 for attention, and the user is already looking here waiting for something to happen. -->
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center"
+                        MaxWidth="360"
+                        Visibility="{Binding IsEmpty, Converter={StaticResource BoolToVisible}}">
+                <TextBlock Text="Acá no hay nada todavía"
+                           FontSize="14.5" FontWeight="SemiBold"
+                           TextAlignment="Center"
+                           Foreground="{StaticResource TextDimBrush}" />
+                <TextBlock Text="Cada cuadrado del deck es un botón: abre una carpeta, una web, o dispara algo en Ableton."
+                           FontSize="12.5" Margin="0,8,0,0"
+                           TextAlignment="Center" TextWrapping="Wrap"
+                           Foreground="{StaticResource TextFaintBrush}" />
+                <Button Style="{StaticResource PrimaryButton}"
+                        Content="Agregar el primer botón"
+                        HorizontalAlignment="Center" Margin="0,18,0,0"
+                        Command="{Binding AddButtonCommand}" />
+            </StackPanel>
+
+            <!-- While editing, a click means "edit this" and not "fire this". That is a big enough change of
+                 meaning to deserve saying so where the user is actually looking, instead of only at the edges
+                 of the window. -->
+            <Border IsHitTestVisible="False"
+                    BorderBrush="{StaticResource AccentBrush}"
+                    BorderThickness="2"
+                    CornerRadius="14"
+                    Margin="6"
+                    Opacity="0.28"
+                    Visibility="{Binding IsEditMode, Converter={StaticResource BoolToVisible}}" />
+            </Grid>
+
+            <!-- ===== Bottom bar: pages and status ===== -->
+            <Border x:Name="PagesBar" Grid.Row="3" Height="48" Background="{StaticResource ChromeBrush}"
+                    BorderBrush="{StaticResource BorderBrush}" BorderThickness="0,1,0,0">
+                <Grid Margin="14,0">
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <TextBlock Text="WORKFLOW" FontSize="11" Margin="0,0,12,0"
+                                   VerticalAlignment="Center"
+                                   Foreground="{StaticResource TextFaintBrush}" />
+
+                        <ItemsControl ItemsSource="{Binding Pages}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <StackPanel Orientation="Horizontal" />
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource ChromeButton}" Padding="11,5" Margin="0,0,4,0"
+                                            Content="{Binding Name}"
+                                            Command="{Binding DataContext.SelectPageCommand,
+                                                      RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                            CommandParameter="{Binding}">
+                                        <Button.Background>
+                                            <MultiBinding Converter="{StaticResource PageSelectionBrush}">
+                                                <Binding />
+                                                <Binding Path="DataContext.SelectedPage"
+                                                         RelativeSource="{RelativeSource AncestorType=ItemsControl}" />
+                                            </MultiBinding>
+                                        </Button.Background>
+                                        <!-- Clic derecho sobre CUALQUIER pestaña, esté abierta o no,
+                                             sin tener que pasar por ella primero. -->
+                                        <Button.ContextMenu>
+                                            <ContextMenu>
+                                                <MenuItem Header="Configurar página"
+                                                          Command="{Binding DataContext.EditPageCommand,
+                                                                    RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                          CommandParameter="{Binding}" />
+                                                <MenuItem Header="Eliminar página"
+                                                          Command="{Binding DataContext.DeletePageCommand,
+                                                                    RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                          CommandParameter="{Binding}" />
+                                            </ContextMenu>
+                                        </Button.ContextMenu>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+
+                        <Button Style="{StaticResource ChromeButton}" Command="{Binding NewPageCommand}"
+                                Content="&#xE710;" FontFamily="{StaticResource GlyphFont}" FontSize="11"
+                                Padding="8,5" ToolTip="Nueva página" />
+                    </StackPanel>
+
+                    <TextBlock HorizontalAlignment="Right" VerticalAlignment="Center"
+                               Text="{Binding StatusMessage}"
+                               FontSize="12.5"
+                               TextTrimming="CharacterEllipsis"
+                               MaxWidth="520"
+                               Foreground="{Binding StatusIsError, Converter={StaticResource StatusBrush}}" />
+                </Grid>
+            </Border>
+            <Border x:Name="DockSurface" Grid.RowSpan="4" Visibility="Collapsed" Background="{StaticResource ChromeBrush}" Padding="5,0">
+                <Grid>
+                    <Grid.ColumnDefinitions><ColumnDefinition Width="Auto"/><ColumnDefinition Width="*"/><ColumnDefinition Width="Auto"/></Grid.ColumnDefinitions>
+                    <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button Style="{StaticResource ChromeButton}" Content="DD" Foreground="{StaticResource AccentBrush}" FontWeight="Bold" Click="DockMode_Click" Padding="5" ToolTip="Volver al panel"/>
+                        <Button Style="{StaticResource ChromeButton}" Padding="4" Command="{Binding ShowAbletonStatusCommand}">
+                            <Button.ToolTip>
+                                <StackPanel MaxWidth="360">
+                                    <TextBlock Text="{Binding AbletonDetail}" TextWrapping="Wrap"/>
+                                    <TextBlock Text="{Binding StatusMessage}" Margin="0,6,0,0" TextWrapping="Wrap"/>
+                                </StackPanel>
+                            </Button.ToolTip>
+                            <StackPanel Orientation="Horizontal">
+                                <Ellipse Width="6" Height="6" Fill="{Binding AbletonState, Converter={StaticResource AbletonBrush}}" VerticalAlignment="Center"/>
+                                <TextBlock Text="!" Foreground="{StaticResource DangerBrush}" FontWeight="Bold" Margin="3,0,0,0" Visibility="{Binding StatusIsError, Converter={StaticResource BoolToVisible}}"/>
+                            </StackPanel>
+                        </Button>
+                        <Button x:Name="DockProfileButton" Style="{StaticResource ChromeButton}" Content="♙" FontSize="17" Padding="5" Click="OpenProfileMenu_Click" ToolTip="Perfil: {Binding SelectedProfile.Name}">
+                            <Button.ContextMenu>
+                                <ContextMenu ItemsSource="{Binding PlacementTarget.DataContext.Profiles, RelativeSource={RelativeSource Self}}">
+                                    <ContextMenu.ItemContainerStyle>
+                                        <Style TargetType="MenuItem" BasedOn="{StaticResource {x:Type MenuItem}}">
+                                            <Setter Property="Header" Value="{Binding Name}"/>
+                                            <Setter Property="Command" Value="{Binding PlacementTarget.DataContext.SelectProfileCommand, RelativeSource={RelativeSource AncestorType=ContextMenu}}"/>
+                                            <Setter Property="CommandParameter" Value="{Binding}"/>
+                                        </Style>
+                                    </ContextMenu.ItemContainerStyle>
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                        </Button>
+                        <ComboBox Width="92" ItemsSource="{Binding Pages}" SelectedItem="{Binding SelectedPage}" DisplayMemberPath="Name" Margin="0,0,3,0" ToolTip="Workflow / página"/>
+                        <Button Style="{StaticResource ChromeButton}" Content="↶" Padding="6,5" Command="{Binding GoBackCommand}" ToolTip="Volver al grupo anterior" Visibility="{Binding CanGoBack, Converter={StaticResource BoolToVisible}}"/>
+                    </StackPanel>
+                    <ScrollViewer x:Name="DockScroll" Grid.Column="1" HorizontalScrollBarVisibility="Hidden" VerticalScrollBarVisibility="Disabled" PreviewMouseWheel="DockScroll_MouseWheel" PanningMode="HorizontalOnly">
+                        <ItemsControl ItemsSource="{Binding Items}">
+                            <ItemsControl.ItemsPanel>
+                                <ItemsPanelTemplate>
+                                    <controls:DockStripPanel Rows="{Binding DockRows, RelativeSource={RelativeSource AncestorType=Window}}"/>
+                                </ItemsPanelTemplate>
+                            </ItemsControl.ItemsPanel>
+                            <ItemsControl.ItemTemplate>
+                                <DataTemplate>
+                                    <Button Style="{StaticResource DockKey}" Click="DockTile_Click" ToolTip="{Binding ToolTipText}">
+                                        <Grid>
+                                            <Viewbox Width="26" Height="26" Visibility="{Binding IconPath, Converter={StaticResource NullToVisible}}">
+                                                <Path Style="{StaticResource LineIcon}" Data="{Binding DrawableIconName, Converter={StaticResource IconGeometry}}" Stroke="{Binding ColorHex, Converter={StaticResource TileAccent}}"/>
+                                            </Viewbox>
+                                            <Image Width="27" Height="27" Source="{Binding IconPath, Converter={StaticResource IconImage}}" Visibility="{Binding IconPath, Converter={StaticResource NotNullToVisible}}" RenderOptions.BitmapScalingMode="HighQuality"/>
+                                            <Border VerticalAlignment="Bottom" HorizontalAlignment="Center" Width="20" Height="2" CornerRadius="1" Background="{Binding ColorHex, Converter={StaticResource TileAccent}}" Visibility="{Binding IsLit, Converter={StaticResource BoolToVisible}}"/>
+                                        </Grid>
+                                    </Button>
+                                </DataTemplate>
+                            </ItemsControl.ItemTemplate>
+                        </ItemsControl>
+                    </ScrollViewer>
+                    <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                        <Button x:Name="DockWindowsButton" Style="{StaticResource ChromeButton}" Click="DockWindows_Click"
+                                Padding="7,5" ToolTip="Mostrar la barra de Windows y ocultar DigitalDeck">
+                            <Grid Width="16" Height="16">
+                                <Grid.ColumnDefinitions><ColumnDefinition/><ColumnDefinition/></Grid.ColumnDefinitions>
+                                <Grid.RowDefinitions><RowDefinition/><RowDefinition/></Grid.RowDefinitions>
+                                <Border Margin="0,0,2,2" Background="{StaticResource TextBrush}" CornerRadius="1"/>
+                                <Border Grid.Column="1" Margin="2,0,0,2" Background="{StaticResource TextBrush}" CornerRadius="1"/>
+                                <Border Grid.Row="1" Margin="0,2,2,0" Background="{StaticResource TextBrush}" CornerRadius="1"/>
+                                <Border Grid.Row="1" Grid.Column="1" Margin="2,2,0,0" Background="{StaticResource TextBrush}" CornerRadius="1"/>
+                            </Grid>
+                        </Button>
+                        <Button x:Name="DockTasksButton" Style="{StaticResource ChromeButton}" Content="☷"
+                                Click="DockTasks_Click" Padding="7,5" FontSize="17"
+                                ToolTip="Notas y tareas pendientes"/>
+                        <Button x:Name="DockUpdateButton" Style="{StaticResource ChromeButton}" Content="Actualizar"
+                                Click="DockUpdate_Click" Padding="8,5" FontSize="11"
+                                ToolTip="Consultar actualizaciones en GitHub"/>
+                        <Button x:Name="DockAbletonRecentButton" Style="{StaticResource ChromeButton}" Content="◷"
+                                Click="DockAbletonRecent_Click" Padding="7,5" FontSize="17"
+                                ToolTip="Proyectos recientes de Ableton Live"/>
+                        <Button Style="{StaticResource ChromeButton}" Content="◉" Click="ViewMenu_Click"
+                                ContextMenu="{StaticResource ViewMenu}" Padding="8,5"
+                                FontSize="17" ToolTip="Vista: panel, barra arriba o barra abajo"/>
+                        <Button Style="{StaticResource ChromeButton}" Content="‹" Click="DockPrevious_Click" Padding="6,5" ToolTip="Botones anteriores"/>
+                        <Button Style="{StaticResource ChromeButton}" Content="›" Click="DockNext_Click" Padding="6,5" ToolTip="Más botones"/>
+                        <Button Style="{StaticResource ChromeButton}" Content="+" Click="DockAdd_Click" ToolTip="Agregar botón" FontSize="18" Padding="6,4"/>
+                        <Button Style="{StaticResource ChromeButton}" Content="⋯" Click="DockOptions_Click" ToolTip="Posición, hileras y herramientas">
+                            <Button.ContextMenu>
+                                <ContextMenu>
+                                    <MenuItem Header="POSICIÓN" Style="{StaticResource MenuHeader}"/>
+                                    <MenuItem x:Name="DockTopOption" Header="Arriba" IsCheckable="True" Tag="top" Click="DockPosition_Click"/>
+                                    <MenuItem x:Name="DockBottomOption" Header="Abajo · junto a Windows" IsCheckable="True" Tag="bottom" Click="DockPosition_Click"/>
+                                    <Separator/>
+                                    <MenuItem x:Name="DockSingleOption" Header="Una hilera" IsCheckable="True" Tag="1" Click="DockRows_Click"/>
+                                    <MenuItem x:Name="DockDoubleOption" Header="Dos hileras" IsCheckable="True" Tag="2" Click="DockRows_Click"/>
+                                    <Separator/>
+                                    <MenuItem x:Name="DockAboveTaskbarOption" Header="Abajo · encima de Windows" IsCheckable="True" Tag="above" Click="DockTaskbarMode_Click"/>
+                                    <MenuItem x:Name="DockOverlayOption" Header="Abajo · sobre Windows" IsCheckable="True" Tag="overlay" Click="DockTaskbarMode_Click"/>
+                                    <Separator/>
+                                    <MenuItem Header="Editar este workflow" Click="DockEdit_Click"/>
+                                    <MenuItem Header="Nuevo perfil" Command="{Binding NewProfileCommand}"/>
+                                    <MenuItem Header="Nueva página de workflow" Command="{Binding NewPageCommand}"/>
+                                    <MenuItem Header="Asistente de voz" Command="{Binding ShowVoiceSettingsCommand}"/>
+                                    <MenuItem Header="Volver al panel" Click="DockMode_Click"/>
+                                    <Separator/>
+                                    <MenuItem Header="Minimizar" Click="Minimise_Click"/>
+                                    <MenuItem Header="Cerrar" Click="Close_Click"/>
+                                </ContextMenu>
+                            </Button.ContextMenu>
+                        </Button>
+                    </StackPanel>
+                </Grid>
+            </Border>
+        </Grid>
+    </Border>
+</Window>

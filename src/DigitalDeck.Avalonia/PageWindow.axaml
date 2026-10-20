@@ -1,0 +1,48 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="DigitalDeck.Avalonia.PageWindow"
+        Title="Página — DigitalDeck"
+        Width="380" SizeToContent="Height"
+        CanResize="False"
+        WindowStartupLocation="CenterOwner"
+        Background="{StaticResource Background}">
+
+    <StackPanel Margin="20" Spacing="12">
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="NOMBRE" Foreground="{StaticResource TextDim}" FontSize="10.5" />
+            <TextBox x:Name="NameBox" />
+        </StackPanel>
+
+        <StackPanel Spacing="4">
+            <TextBlock Text="TAMAÑO DE LA GRILLA" Foreground="{StaticResource TextDim}" FontSize="10.5" />
+
+            <!-- Los cuatro de siempre, y abajo los libres. Casi nadie necesita otro. -->
+            <StackPanel Orientation="Horizontal" Spacing="6">
+                <Button Content="4×3" Click="Preset_Click" Tag="4,3" />
+                <Button Content="6×4" Click="Preset_Click" Tag="6,4" />
+                <Button Content="8×5" Click="Preset_Click" Tag="8,5" />
+                <Button Content="10×6" Click="Preset_Click" Tag="10,6" />
+            </StackPanel>
+        </StackPanel>
+
+        <StackPanel Orientation="Horizontal" Spacing="10">
+            <StackPanel Spacing="4">
+                <TextBlock Text="Columnas" Foreground="{StaticResource TextDim}" FontSize="10.5" />
+                <TextBox x:Name="ColumnsBox" Width="80" />
+            </StackPanel>
+            <StackPanel Spacing="4">
+                <TextBlock Text="Filas" Foreground="{StaticResource TextDim}" FontSize="10.5" />
+                <TextBox x:Name="RowsBox" Width="80" />
+            </StackPanel>
+        </StackPanel>
+
+        <TextBlock x:Name="Problem" Foreground="#E8615F" FontSize="11.5"
+                   TextWrapping="Wrap" IsVisible="False" />
+
+        <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+            <Button Content="Cancelar" Click="Cancel_Click" />
+            <Button Content="Guardar" Click="Save_Click" IsDefault="True" />
+        </StackPanel>
+    </StackPanel>
+</Window>

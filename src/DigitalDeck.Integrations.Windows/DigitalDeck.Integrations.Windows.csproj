@@ -1,0 +1,49 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    La mitad de las integraciones que sólo existe en Windows.
+
+    Se separó de DigitalDeck.Integrations al empezar el paso 3 del port. Lo que quedó allá no
+    tenía una sola línea de Win32: el puente OSC con Live, el instalador del Remote Script y los
+    botones que abren carpetas y webs andan igual en cualquier lado, y arrastrarlos a un proyecto
+    net8.0-windows los hacía inportables por vecindad.
+
+    Acá quedan las dos cosas que de verdad atan la app a Windows: el Win32 (monitores, ventanas,
+    atajos globales, teclas simuladas, arranque con el sistema) y la captura de micrófono por
+    WASAPI, que es de NAudio.
+  -->
+  <PropertyGroup>
+    <TargetFramework>net8.0-windows</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DigitalDeck.Core\DigitalDeck.Core.csproj" />
+    <ProjectReference Include="..\DigitalDeck.Integrations\DigitalDeck.Integrations.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <InternalsVisibleTo Include="DigitalDeck.Integrations.Tests" />
+  </ItemGroup>
+
+  <!--
+    Captura de micrófono para el asistente de voz. NAudio se usa sólo para WASAPI: ver IVoiceInput
+    para por qué esto deliberadamente no se acerca a ASIO.
+  -->
+  <ItemGroup>
+    <PackageReference Include="NAudio" Version="2.2.1" />
+    <PackageReference Include="Vosk" Version="0.3.38" />
+  </ItemGroup>
+
+  <!--
+    El modelo de voz viaja adentro de la app.
+
+    Vosk necesita una carpeta de archivos en disco antes de reconocer una palabra. Son unos sesenta
+    megas descomprimidos, demasiado para bajar y descomprimir a mano en el lugar correcto. Mandarlo
+    como un recurso comprimido deja que EmbeddedVoiceModelInstaller lo desempaque en el primer
+    arranque, por la misma razón que el Remote Script viaja embebido en vez de descargarse.
+  -->
+  <ItemGroup>
+    <EmbeddedResource Include="Voice\Assets\*.zip" LogicalName="VoiceModel/%(Filename)%(Extension)" />
+  </ItemGroup>
+
+</Project>
